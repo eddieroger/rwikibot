@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html>
+<head>
+  <title>revisions (RWikiBot)</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+  <link rel="stylesheet" href="../.././rdoc-style.css" type="text/css" media="screen" />
+</head>
+<body class="standalone-code">
+  <pre><span class="ruby-comment cmt"># File lib/rwikibot.rb, line 438</span>
+  <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">revisions</span>(<span class="ruby-identifier">titles</span>, <span class="ruby-identifier">options</span> = <span class="ruby-keyword kw">nil</span>)
+    
+    <span class="ruby-comment cmt"># Prepare the request! Notify the logger!</span>
+    <span class="ruby-ivar">@wikibotlogger</span>.<span class="ruby-identifier">debug</span> <span class="ruby-value str">&quot;REVISIONS - Preparing the requeset...&quot;</span>
+    <span class="ruby-identifier">post_me</span> = {<span class="ruby-value str">'prop'</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-value str">'revisions'</span>, <span class="ruby-value str">'titles'</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">titles</span>}
+    
+    <span class="ruby-comment cmt"># Handle any additional options</span>
+    <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">options</span> <span class="ruby-operator">!=</span> <span class="ruby-keyword kw">nil</span>
+      <span class="ruby-ivar">@wikibotlogger</span>.<span class="ruby-identifier">debug</span>(<span class="ruby-value str">&quot;REVISIONS - Additional options added by requestor. Adding to post_me...&quot;</span>)
+      <span class="ruby-identifier">options</span>.<span class="ruby-identifier">each_pair</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">key</span>, <span class="ruby-identifier">value</span><span class="ruby-operator">|</span>
+        <span class="ruby-identifier">post_me</span>[<span class="ruby-identifier">key</span>] = <span class="ruby-identifier">value</span>
+        <span class="ruby-ivar">@wikibotlogger</span>.<span class="ruby-identifier">debug</span> <span class="ruby-node">&quot;REVISIONS - Added #{post_me[key]}&quot;</span>
+      <span class="ruby-keyword kw">end</span>
+      <span class="ruby-ivar">@wikibotlogger</span>.<span class="ruby-identifier">debug</span>(<span class="ruby-value str">&quot;REVISIONS - No more additional options. Moving on...&quot;</span>)
+    <span class="ruby-keyword kw">end</span>
+    
+    <span class="ruby-comment cmt"># Make the request. Becuase we care.</span>
+    <span class="ruby-ivar">@wikibotlogger</span>.<span class="ruby-identifier">debug</span> <span class="ruby-node">&quot;REVISIONS - Asking make_request to get revision for articles(s) #{titles}&quot;</span>
+    <span class="ruby-identifier">revisions_result</span> = <span class="ruby-identifier">make_request</span>(<span class="ruby-value str">'query'</span>, <span class="ruby-identifier">post_me</span> )
+    <span class="ruby-ivar">@wikibotlogger</span>.<span class="ruby-identifier">debug</span> <span class="ruby-value str">&quot;REVISIONS - We should have a result now...&quot;</span>
+    
+    <span class="ruby-comment cmt">#Process the results</span>
+    <span class="ruby-ivar">@wikibotlogger</span>.<span class="ruby-identifier">debug</span> <span class="ruby-value str">&quot;REVISIONS - Preparing results...&quot;</span>
+    
+    <span class="ruby-keyword kw">return</span> <span class="ruby-identifier">revisions_result</span>.<span class="ruby-identifier">fetch</span>(<span class="ruby-value str">'pages'</span>)
+    
+  <span class="ruby-keyword kw">end</span></pre>
+</body>
+</html>

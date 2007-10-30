@@ -1,0 +1,900 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>Class: RWikiBot</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+  <meta http-equiv="Content-Script-Type" content="text/javascript" />
+  <link rel="stylesheet" href=".././rdoc-style.css" type="text/css" media="screen" />
+  <script type="text/javascript">
+  // <![CDATA[
+
+  function popupCode( url ) {
+    window.open(url, "Code", "resizable=yes,scrollbars=yes,toolbar=no,status=no,height=150,width=400")
+  }
+
+  function toggleCode( id ) {
+    if ( document.getElementById )
+      elem = document.getElementById( id );
+    else if ( document.all )
+      elem = eval( "document.all." + id );
+    else
+      return false;
+
+    elemStyle = elem.style;
+    
+    if ( elemStyle.display != "block" ) {
+      elemStyle.display = "block"
+    } else {
+      elemStyle.display = "none"
+    }
+
+    return true;
+  }
+  
+  // Make codeblocks hidden by default
+  document.writeln( "<style type=\"text/css\">div.method-source-code { display: none }</style>" )
+  
+  // ]]>
+  </script>
+
+</head>
+<body>
+
+
+
+    <div id="classHeader">
+        <table class="header-table">
+        <tr class="top-aligned-row">
+          <td><strong>Class</strong></td>
+          <td class="class-name-in-header">RWikiBot</td>
+        </tr>
+        <tr class="top-aligned-row">
+            <td><strong>In:</strong></td>
+            <td>
+                <a href="../files/lib/rwikibot_rb.html">
+                lib/rwikibot.rb
+                </a>
+        <br />
+            </td>
+        </tr>
+
+        <tr class="top-aligned-row">
+            <td><strong>Parent:</strong></td>
+            <td>
+                Object
+            </td>
+        </tr>
+        </table>
+    </div>
+  <!-- banner header -->
+
+  <div id="bodyContent">
+
+
+
+  <div id="contextContent">
+
+    <div id="description">
+      <p>
+This is the main bot object. The goal is to represent every API method in
+some form here, and then write seperate, cleaner scripts in individual bot
+files utilizing this framework. Basically, this is an include at best.
+</p>
+
+    </div>
+
+
+   </div>
+
+    <div id="method-list">
+      <h3 class="section-bar">Methods</h3>
+
+      <div class="name-list">
+      <a href="#M000008">all_pages</a>&nbsp;&nbsp;
+      <a href="#M000009">info</a>&nbsp;&nbsp;
+      <a href="#M000005">log_events</a>&nbsp;&nbsp;
+      <a href="#M000002">login</a>&nbsp;&nbsp;
+      <a href="#M000012">make_unique</a>&nbsp;&nbsp;
+      <a href="#M000001">new</a>&nbsp;&nbsp;
+      <a href="#M000007">normalize</a>&nbsp;&nbsp;
+      <a href="#M000004">recent_changes</a>&nbsp;&nbsp;
+      <a href="#M000006">redirects</a>&nbsp;&nbsp;
+      <a href="#M000010">revisions</a>&nbsp;&nbsp;
+      <a href="#M000011">site_info</a>&nbsp;&nbsp;
+      <a href="#M000003">watchlist</a>&nbsp;&nbsp;
+      </div>
+    </div>
+
+  </div>
+
+
+    <!-- if includes -->
+
+    <div id="section">
+
+
+
+
+
+    <div id="attribute-list">
+      <h3 class="section-bar">Attributes</h3>
+
+      <div class="name-list">
+        <table>
+        <tr class="top-aligned-row context-row">
+          <td class="context-item-name">botname</td>
+          <td class="context-item-value">&nbsp;[RW]&nbsp;</td>
+          <td class="context-item-desc"></td>
+        </tr>
+        <tr class="top-aligned-row context-row">
+          <td class="context-item-name">config</td>
+          <td class="context-item-value">&nbsp;[RW]&nbsp;</td>
+          <td class="context-item-desc"></td>
+        </tr>
+        <tr class="top-aligned-row context-row">
+          <td class="context-item-name">http</td>
+          <td class="context-item-value">&nbsp;[RW]&nbsp;</td>
+          <td class="context-item-desc"></td>
+        </tr>
+        </table>
+      </div>
+    </div>
+      
+
+
+    <!-- if method_list -->
+    <div id="methods">
+      <h3 class="section-bar">Public Class methods</h3>
+
+      <div id="method-M000001" class="method-detail">
+        <a name="M000001"></a>
+
+        <div class="method-heading">
+          <a href="#M000001" class="method-signature">
+          <span class="method-name">new</span><span class="method-args">(config, name = &quot;Unnamed Bot&quot;, debuglevel = Logger::INFO, log_location = &quot;./rwikibot.log&quot; )</span>
+          </a>
+        </div>
+      
+        <div class="method-description">
+          <p>
+<a href="RWikiBot.html">RWikiBot</a> requires a hash of config options to
+load. You must pass api_path, username, and password for the Wiki. The
+other three attributes are optional for logging. Logs are on by default
+since there is a lot of server interaction.
+</p>
+<p>
+Example: bot = <a href="RWikiBot.html#M000001">RWikiBot.new</a>( {api_path
+=&gt; &quot;<a
+href="http://localhost/wiki/apu.php">localhost/wiki/apu.php</a>&quot;,
+username=&gt;&quot;rwikibot&quot;, password =&gt; &quot;rwikibot&quot;},
+&quot;My Neat Bot&quot;, &quot;DEBUG&quot;, &quot;./rwikibot.log&quot;)
+</p>
+          <p><a class="source-toggle" href="#"
+            onclick="toggleCode('M000001-source');return false;">[Source]</a></p>
+          <div class="method-source-code" id="M000001-source">
+<pre>
+<span class="ruby-comment cmt"># File lib/rwikibot.rb, line 29</span>
+  <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">initialize</span> (<span class="ruby-identifier">config</span>, <span class="ruby-identifier">name</span> = <span class="ruby-value str">&quot;Unnamed Bot&quot;</span>, <span class="ruby-identifier">debuglevel</span> = <span class="ruby-constant">Logger</span><span class="ruby-operator">::</span><span class="ruby-constant">INFO</span>, <span class="ruby-identifier">log_location</span> = <span class="ruby-value str">&quot;./rwikibot.log&quot;</span> )
+    
+    <span class="ruby-ivar">@botname</span> = <span class="ruby-identifier">name</span>
+    
+    <span class="ruby-comment cmt">#We log. Log4r in the house. </span>
+    <span class="ruby-ivar">@wikibotlogger</span> = <span class="ruby-constant">Logger</span>.<span class="ruby-identifier">new</span> (<span class="ruby-value str">'rwikibot.log'</span>)
+    <span class="ruby-comment cmt"># @wikibotlogger.outputters = FileOutputter.new('f1', :filename =&gt; log_location, :trunc =&gt; false)</span>
+    
+    <span class="ruby-comment cmt">#INFO level is nice. I like it as production default because I like log files. Feel free to change. It will change once config loaded</span>
+    <span class="ruby-ivar">@wikibotlogger</span>.<span class="ruby-identifier">level</span> = <span class="ruby-identifier">debuglevel</span>
+    <span class="ruby-ivar">@wikibotlogger</span>.<span class="ruby-identifier">info</span> <span class="ruby-node">&quot;New RWikiBot created. My name is #{@botname}&quot;</span>
+    
+    <span class="ruby-comment cmt"># New config. Removed file-based. Takes in a hash on load. No config needed anymore, I guess. At least I learned YAML processing...</span>
+    
+    <span class="ruby-comment cmt">#now, the hash that will hold the config options</span>
+    <span class="ruby-ivar">@config</span> = <span class="ruby-identifier">config</span>
+    <span class="ruby-ivar">@config</span>[<span class="ruby-value str">'logged_in'</span>] = <span class="ruby-constant">FALSE</span>
+    <span class="ruby-ivar">@config</span>[<span class="ruby-value str">'uri'</span>] = <span class="ruby-constant">URI</span>.<span class="ruby-identifier">parse</span>(<span class="ruby-ivar">@config</span>.<span class="ruby-identifier">fetch</span>(<span class="ruby-value str">'api_path'</span>))
+    
+    <span class="ruby-comment cmt">##change - make an HTTP object here for use later, now that we have config</span>
+    <span class="ruby-ivar">@http</span> = <span class="ruby-constant">Net</span><span class="ruby-operator">::</span><span class="ruby-constant">HTTP</span>.<span class="ruby-identifier">new</span>(<span class="ruby-ivar">@config</span>.<span class="ruby-identifier">fetch</span>(<span class="ruby-value str">'uri'</span>).<span class="ruby-identifier">host</span>, <span class="ruby-ivar">@config</span>.<span class="ruby-identifier">fetch</span>(<span class="ruby-value str">'uri'</span>).<span class="ruby-identifier">port</span>)
+    <span class="ruby-ivar">@wikibotlogger</span>.<span class="ruby-identifier">debug</span>(<span class="ruby-node">&quot;INIT - Created HTTP object. Result is: #{@http}}&quot;</span>)
+
+    <span class="ruby-ivar">@config</span>[<span class="ruby-value str">'cookie'</span>] = <span class="ruby-keyword kw">nil</span>
+  <span class="ruby-keyword kw">end</span>
+</pre>
+          </div>
+        </div>
+      </div>
+
+      <h3 class="section-bar">Public Instance methods</h3>
+
+      <div id="method-M000008" class="method-detail">
+        <a name="M000008"></a>
+
+        <div class="method-heading">
+          <a href="#M000008" class="method-signature">
+          <span class="method-name">all_pages</span><span class="method-args">(options = nil)</span>
+          </a>
+        </div>
+      
+        <div class="method-description">
+          <p>
+List
+</p>
+<p>
+This will return a list of all pages in a given namespace. It returns a
+list of pages in with the normalized title and page ID, suitable for usage
+elsewhere. Accepts all parameters from the API in Hash form. Default is
+namespace =&gt; 0, which is just plain pages. Nothing
+&#8216;special&#8217;. Also note that if the username the Bot uses is not
+of type Bot in the Wiki, you will be limited to 50 articles. Also log in,
+or you get an error.
+</p>
+<table>
+<tr><td valign="top">INPUT:</td><td>A hash of API-allowed keys and values. Default is same as API default.
+
+</td></tr>
+<tr><td valign="top">OUTPUT:</td><td>An array of hashes with information about the pages.
+
+</td></tr>
+</table>
+          <p><a class="source-toggle" href="#"
+            onclick="toggleCode('M000008-source');return false;">[Source]</a></p>
+          <div class="method-source-code" id="M000008-source">
+<pre>
+<span class="ruby-comment cmt"># File lib/rwikibot.rb, line 254</span>
+  <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">all_pages</span> (<span class="ruby-identifier">options</span> = <span class="ruby-keyword kw">nil</span>)
+    
+    <span class="ruby-comment cmt"># This will get all pages. Limits vary based on user rights of the Bot. Set to bot.</span>
+    <span class="ruby-ivar">@wikibotlogger</span>.<span class="ruby-identifier">debug</span> <span class="ruby-value str">&quot;ALL PAGES - Preparing request information...&quot;</span>
+    <span class="ruby-identifier">post_me</span> = {<span class="ruby-value str">'list'</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-value str">'allpages'</span>, <span class="ruby-value str">'apnamespace'</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-value str">'0'</span>, <span class="ruby-value str">'aplimit'</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-value str">'5000'</span>}
+    
+    <span class="ruby-comment cmt">#make the request</span>
+    <span class="ruby-ivar">@wikibotlogger</span>.<span class="ruby-identifier">debug</span> <span class="ruby-value str">&quot;ALL PAGES - Asking make_request to get all pages...&quot;</span>
+    <span class="ruby-identifier">allpages_result</span> = <span class="ruby-identifier">make_request</span>(<span class="ruby-value str">'query'</span>, <span class="ruby-identifier">post_me</span>)
+    <span class="ruby-ivar">@wikibotlogger</span>.<span class="ruby-identifier">debug</span> <span class="ruby-value str">&quot;ALL PAGES - We should have a result now...&quot;</span>    
+    
+    <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">options</span> <span class="ruby-operator">!=</span> <span class="ruby-keyword kw">nil</span>
+      <span class="ruby-ivar">@wikibotlogger</span>.<span class="ruby-identifier">debug</span>(<span class="ruby-value str">&quot;ALL PAGES - Additional options added by requestor. Adding to post_me...&quot;</span>)
+      <span class="ruby-identifier">options</span>.<span class="ruby-identifier">each_pair</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">key</span>, <span class="ruby-identifier">value</span><span class="ruby-operator">|</span>
+        <span class="ruby-identifier">post_me</span>[<span class="ruby-identifier">key</span>] = <span class="ruby-identifier">value</span>
+        <span class="ruby-ivar">@wikibotlogger</span>.<span class="ruby-identifier">debug</span> <span class="ruby-node">&quot;ALL PAGES - Added #{post_me[key]}&quot;</span>
+      <span class="ruby-keyword kw">end</span>
+      <span class="ruby-ivar">@wikibotlogger</span>.<span class="ruby-identifier">debug</span>(<span class="ruby-value str">&quot;ALL PAGES - No more additional options. Moving on...&quot;</span>)
+    <span class="ruby-keyword kw">end</span>
+    
+    <span class="ruby-keyword kw">return</span> <span class="ruby-identifier">allpages_result</span>.<span class="ruby-identifier">fetch</span>(<span class="ruby-value str">'allpages'</span>)
+    
+  <span class="ruby-keyword kw">end</span>
+</pre>
+          </div>
+        </div>
+      </div>
+
+      <div id="method-M000009" class="method-detail">
+        <a name="M000009"></a>
+
+        <div class="method-heading">
+          <a href="#M000009" class="method-signature">
+          <span class="method-name">info</span><span class="method-args">(titles)</span>
+          </a>
+        </div>
+      
+        <div class="method-description">
+          <p>
+Prop = Info
+</p>
+<p>
+I decided to split this up since I wanted to <a
+href="RWikiBot.html#M000007">normalize</a> the bot framework as much as
+possible, or in other words, make it as easy to use as possible. I think
+the sacrifice of more methods is worth having more English looking code.
+Its the Ruby way. Info will return information about the page, from
+namespace to normalized title, last touched, etc.
+</p>
+<table>
+<tr><td valign="top">INPUT:</td><td>This method only takes titles, but will accept a pipe-delimited string. Ex:
+&quot;Apple|Baseball|Horse|Main Page&quot;
+
+</td></tr>
+<tr><td valign="top">OUTPUT:</td><td>An array of hashes.
+
+</td></tr>
+</table>
+          <p><a class="source-toggle" href="#"
+            onclick="toggleCode('M000009-source');return false;">[Source]</a></p>
+          <div class="method-source-code" id="M000009-source">
+<pre>
+<span class="ruby-comment cmt"># File lib/rwikibot.rb, line 286</span>
+  <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">info</span> (<span class="ruby-identifier">titles</span>)
+    
+    <span class="ruby-comment cmt"># Basic quqery info</span>
+    <span class="ruby-ivar">@wikibotlogger</span>.<span class="ruby-identifier">debug</span> <span class="ruby-value str">&quot;INFO - Preparing the query...&quot;</span>
+    <span class="ruby-identifier">post_me</span> = {<span class="ruby-value str">&quot;prop&quot;</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-value str">&quot;info&quot;</span>, <span class="ruby-value str">'titles'</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">titles</span>}
+    
+    <span class="ruby-comment cmt"># Make the request</span>
+    <span class="ruby-ivar">@wikibotlogger</span>.<span class="ruby-identifier">debug</span> <span class="ruby-value str">&quot;INFO - Asking make_request to get info&quot;</span>
+    <span class="ruby-identifier">info_result</span> = <span class="ruby-identifier">make_request</span>(<span class="ruby-value str">'query'</span>, <span class="ruby-identifier">post_me</span>)
+    <span class="ruby-ivar">@wikibotlogger</span>.<span class="ruby-identifier">debug</span> <span class="ruby-value str">&quot;INFO - We should have a result set now...&quot;</span>
+    
+    <span class="ruby-comment cmt"># Result processing</span>
+    <span class="ruby-ivar">@wikibotlogger</span>.<span class="ruby-identifier">debug</span> <span class="ruby-value str">&quot;INFO - Preparing results...&quot;</span>
+    
+    <span class="ruby-keyword kw">return</span> <span class="ruby-identifier">info_result</span>.<span class="ruby-identifier">fetch</span>(<span class="ruby-value str">'pages'</span>)
+  
+  <span class="ruby-keyword kw">end</span>
+</pre>
+          </div>
+        </div>
+      </div>
+
+      <div id="method-M000005" class="method-detail">
+        <a name="M000005"></a>
+
+        <div class="method-heading">
+          <a href="#M000005" class="method-signature">
+          <span class="method-name">log_events</span><span class="method-args">(options = nil)</span>
+          </a>
+        </div>
+      
+        <div class="method-description">
+          <p>
+List
+</p>
+<p>
+This will reutrn a list of the most recent log events. Useful for bots who
+want to validate log events, or even just a notify bot that checks for
+events and sends them off.
+</p>
+<table>
+<tr><td valign="top">INPUT:</td><td>A hash of API-allowed keys and values. Default is same as API default.
+
+</td></tr>
+<tr><td valign="top">OUTPUT:</td><td>An array of hashes containing log events.
+
+</td></tr>
+</table>
+          <p><a class="source-toggle" href="#"
+            onclick="toggleCode('M000005-source');return false;">[Source]</a></p>
+          <div class="method-source-code" id="M000005-source">
+<pre>
+<span class="ruby-comment cmt"># File lib/rwikibot.rb, line 157</span>
+  <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">log_events</span> (<span class="ruby-identifier">options</span> = <span class="ruby-keyword kw">nil</span>)
+    
+    <span class="ruby-ivar">@wikibotlogger</span>.<span class="ruby-identifier">debug</span> <span class="ruby-value str">&quot;LOG EVENTS - Preparing request information...&quot;</span>
+    
+    <span class="ruby-comment cmt"># Make the request</span>
+    <span class="ruby-identifier">post_me</span> = {<span class="ruby-value str">&quot;list&quot;</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-value str">&quot;logevents&quot;</span>}
+    
+    <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">options</span> <span class="ruby-operator">!=</span> <span class="ruby-keyword kw">nil</span>
+      <span class="ruby-ivar">@wikibotlogger</span>.<span class="ruby-identifier">debug</span>(<span class="ruby-value str">&quot;LOG EVENTS - Additional options added by requestor. Adding to post_me...&quot;</span>)
+      <span class="ruby-identifier">options</span>.<span class="ruby-identifier">each_pair</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">key</span>, <span class="ruby-identifier">value</span><span class="ruby-operator">|</span>
+        <span class="ruby-identifier">post_me</span>[<span class="ruby-identifier">key</span>] = <span class="ruby-identifier">value</span>
+        <span class="ruby-ivar">@wikibotlogger</span>.<span class="ruby-identifier">debug</span> <span class="ruby-node">&quot;LOG EVENTS - Added #{post_me[key]}&quot;</span>
+      <span class="ruby-keyword kw">end</span>
+      <span class="ruby-ivar">@wikibotlogger</span>.<span class="ruby-identifier">debug</span>(<span class="ruby-value str">&quot;LOG EVENTS - No more additional options. Moving on...&quot;</span>)
+    <span class="ruby-keyword kw">end</span>
+    
+    <span class="ruby-comment cmt">#Make the request!</span>
+    <span class="ruby-ivar">@wikibotlogger</span>.<span class="ruby-identifier">debug</span> <span class="ruby-value str">&quot;LOG EVENTS = Asking make_request to get logevents&quot;</span>
+    <span class="ruby-identifier">logevents_result</span> = <span class="ruby-identifier">make_request</span>(<span class="ruby-value str">'query'</span>, <span class="ruby-identifier">post_me</span>)
+    <span class="ruby-ivar">@wikibotlogger</span>.<span class="ruby-identifier">debug</span> <span class="ruby-value str">&quot;LOG EVENTS - We should have a result of type logevents now.&quot;</span>
+    
+    <span class="ruby-comment cmt"># Process results</span>
+    <span class="ruby-ivar">@wikibotlogger</span>.<span class="ruby-identifier">debug</span> <span class="ruby-value str">&quot;LOG EVENTS - Processing result...&quot;</span>
+    
+    
+    <span class="ruby-keyword kw">return</span> <span class="ruby-identifier">logevents_result</span>.<span class="ruby-identifier">fetch</span>(<span class="ruby-value str">'logevents'</span>)
+
+  <span class="ruby-keyword kw">end</span>
+</pre>
+          </div>
+        </div>
+      </div>
+
+      <div id="method-M000002" class="method-detail">
+        <a name="M000002"></a>
+
+        <div class="method-heading">
+          <a href="#M000002" class="method-signature">
+          <span class="method-name">login</span><span class="method-args">()</span>
+          </a>
+        </div>
+      
+        <div class="method-description">
+          <p>
+Login
+</p>
+<p>
+This is the method that will allow the bot to log in to the wiki. Its not
+always necessary, but bots need to log in to save changes or retrieve
+watchlists.
+</p>
+<p>
+No variables are accepted and the username/password are stored in
+config.yaml.
+</p>
+          <p><a class="source-toggle" href="#"
+            onclick="toggleCode('M000002-source');return false;">[Source]</a></p>
+          <div class="method-source-code" id="M000002-source">
+<pre>
+<span class="ruby-comment cmt"># File lib/rwikibot.rb, line 60</span>
+  <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">login</span>
+    
+    <span class="ruby-ivar">@wikibotlogger</span>.<span class="ruby-identifier">debug</span>(<span class="ruby-value str">&quot;LOGIN - Preparing login information...&quot;</span>)
+    <span class="ruby-identifier">post_me</span> = {<span class="ruby-value str">'lgname'</span>=<span class="ruby-operator">&gt;</span><span class="ruby-ivar">@config</span>.<span class="ruby-identifier">fetch</span>(<span class="ruby-value str">'username'</span>),<span class="ruby-value str">'lgpassword'</span>=<span class="ruby-operator">&gt;</span><span class="ruby-ivar">@config</span>.<span class="ruby-identifier">fetch</span>(<span class="ruby-value str">'password'</span>)}
+    
+    <span class="ruby-ivar">@wikibotlogger</span>.<span class="ruby-identifier">debug</span>(<span class="ruby-value str">&quot;LOGIN - Asking make_request to perform login...&quot;</span>)
+    <span class="ruby-identifier">login_result</span> = <span class="ruby-identifier">make_request</span>(<span class="ruby-value str">'login'</span>, <span class="ruby-identifier">post_me</span>)
+    <span class="ruby-ivar">@wikibotlogger</span>.<span class="ruby-identifier">debug</span>(<span class="ruby-value str">&quot;LOGIN - We should have a result of type login now.&quot;</span>)
+    
+    <span class="ruby-ivar">@wikibotlogger</span>.<span class="ruby-identifier">debug</span>(<span class="ruby-node">&quot;LOGIN - login_result received. Result is: #{login_result.fetch('result')}&quot;</span>)
+    
+    <span class="ruby-comment cmt"># Now we need to changed some @config stuff, specifically that we're logged in and the variables of that</span>
+    <span class="ruby-comment cmt"># This will also change the make_request, but I'll comment there</span>
+    <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">login_result</span>.<span class="ruby-identifier">fetch</span>(<span class="ruby-value str">'result'</span>) <span class="ruby-operator">==</span> <span class="ruby-value str">&quot;Success&quot;</span>
+      <span class="ruby-comment cmt"># All lg variables are directly from API and stored in config that way</span>
+      <span class="ruby-ivar">@wikibotlogger</span>.<span class="ruby-identifier">info</span>(<span class="ruby-node">&quot;LOGIN - Login successful. Wiki user is: #{login_result.fetch('lgusername')}&quot;</span>)
+      <span class="ruby-ivar">@config</span>[<span class="ruby-value str">'logged_in'</span>] = <span class="ruby-constant">TRUE</span>
+      <span class="ruby-ivar">@config</span>[<span class="ruby-value str">'lgusername'</span>] = <span class="ruby-identifier">login_result</span>.<span class="ruby-identifier">fetch</span>(<span class="ruby-value str">'lgusername'</span>)
+      <span class="ruby-ivar">@config</span>[<span class="ruby-value str">'lguserid'</span>] = <span class="ruby-identifier">login_result</span>.<span class="ruby-identifier">fetch</span>(<span class="ruby-value str">'lguserid'</span>)
+      <span class="ruby-ivar">@config</span>[<span class="ruby-value str">'lgtoken'</span>] = <span class="ruby-identifier">login_result</span>.<span class="ruby-identifier">fetch</span>(<span class="ruby-value str">'lgtoken'</span>) 
+      <span class="ruby-ivar">@wikibotlogger</span>.<span class="ruby-identifier">debug</span>(<span class="ruby-value str">&quot;LOGIN - MediwWiki API variables stored in @config&quot;</span>)
+      <span class="ruby-keyword kw">return</span> <span class="ruby-constant">TRUE</span>
+    <span class="ruby-keyword kw">else</span> 
+      <span class="ruby-ivar">@wikibotlogger</span>.<span class="ruby-identifier">error</span>(<span class="ruby-node">&quot;LOGIN - Login Error. Wiki API said: #{login_result.fetch('result')}&quot;</span>)
+      <span class="ruby-keyword kw">return</span> <span class="ruby-constant">FALSE</span>
+    <span class="ruby-keyword kw">end</span>
+    
+  <span class="ruby-keyword kw">end</span>
+</pre>
+          </div>
+        </div>
+      </div>
+
+      <div id="method-M000012" class="method-detail">
+        <a name="M000012"></a>
+
+        <div class="method-heading">
+          <a href="#M000012" class="method-signature">
+          <span class="method-name">make_unique</span><span class="method-args">(array)</span>
+          </a>
+        </div>
+      
+        <div class="method-description">
+          <p>
+The point of this method is to iterate through an array of hashes, which
+most of the other methods return, and remove multiple instances of the same
+wiki page. We&#8216;re more than often only concerned with the most recent
+revision, so we&#8216;ll delete old ones.
+</p>
+<p>
+Hashes don&#8216;t respond to the the Array.uniq method. So this is the
+same-ish
+</p>
+<table>
+<tr><td valign="top">INPUT:</td><td>An array of hashes.
+
+</td></tr>
+<tr><td valign="top">OUTPUT:</td><td>An array of hashes that are unique.
+
+</td></tr>
+</table>
+          <p><a class="source-toggle" href="#"
+            onclick="toggleCode('M000012-source');return false;">[Source]</a></p>
+          <div class="method-source-code" id="M000012-source">
+<pre>
+<span class="ruby-comment cmt"># File lib/rwikibot.rb, line 379</span>
+  <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">make_unique</span>(<span class="ruby-identifier">array</span>)
+    
+    <span class="ruby-identifier">test_array</span> = <span class="ruby-identifier">array</span>
+    <span class="ruby-identifier">count</span> = <span class="ruby-value">0</span>
+  
+    <span class="ruby-comment cmt"># First, let's make one big loop to go through each item in the array. </span>
+    <span class="ruby-identifier">array</span>.<span class="ruby-identifier">reverse</span>.<span class="ruby-identifier">each</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">current_item</span><span class="ruby-operator">|</span>
+      
+      <span class="ruby-comment cmt"># Now, let's loop double time. </span>
+      <span class="ruby-identifier">test_array</span>.<span class="ruby-identifier">each</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">test_item</span><span class="ruby-operator">|</span>
+        
+        <span class="ruby-comment cmt"># Some comparisons...</span>
+        <span class="ruby-keyword kw">if</span> (<span class="ruby-identifier">current_item</span>.<span class="ruby-identifier">fetch</span>(<span class="ruby-value str">'title'</span>) <span class="ruby-operator">==</span> <span class="ruby-identifier">test_item</span>.<span class="ruby-identifier">fetch</span>(<span class="ruby-value str">'title'</span>) <span class="ruby-operator">&amp;&amp;</span> <span class="ruby-identifier">current_item</span>.<span class="ruby-identifier">fetch</span>(<span class="ruby-value str">'revid'</span>) <span class="ruby-operator">&gt;</span> <span class="ruby-identifier">test_item</span>.<span class="ruby-identifier">fetch</span>(<span class="ruby-value str">'revid'</span>) )
+          
+          <span class="ruby-comment cmt"># At this point, current is the same article as test, and current is newer. Delete test</span>
+          <span class="ruby-identifier">array</span>.<span class="ruby-identifier">delete</span>(<span class="ruby-identifier">test_item</span>)
+          <span class="ruby-identifier">count</span> <span class="ruby-operator">+=</span> <span class="ruby-value">1</span>
+          
+        <span class="ruby-keyword kw">end</span>
+      <span class="ruby-keyword kw">end</span>
+    <span class="ruby-keyword kw">end</span>
+    
+    <span class="ruby-identifier">puts</span> <span class="ruby-node">&quot;Deleted #{count} items.&quot;</span>
+    
+    <span class="ruby-keyword kw">return</span> <span class="ruby-identifier">array</span>
+  <span class="ruby-keyword kw">end</span>
+</pre>
+          </div>
+        </div>
+      </div>
+
+      <div id="method-M000007" class="method-detail">
+        <a name="M000007"></a>
+
+        <div class="method-heading">
+          <a href="#M000007" class="method-signature">
+          <span class="method-name">normalize</span><span class="method-args">(title)</span>
+          </a>
+        </div>
+      
+        <div class="method-description">
+          <p>
+Query
+</p>
+<p>
+This little ditty returns a normalized version of the title passed to it.
+It is super useful because it will <a
+href="RWikiBot.html#M000007">normalize</a> an otherise poorly entered
+title, but most importantly it will let us know if an article exists or not
+by if it is able to <a href="RWikiBot.html#M000007">normalize</a>.
+</p>
+<table>
+<tr><td valign="top">INPUT:</td><td>Titles, either singular or pipe-delimited.
+
+</td></tr>
+<tr><td valign="top">OUTPUT:</td><td>An array of normalized hashes.
+
+</td></tr>
+</table>
+          <p><a class="source-toggle" href="#"
+            onclick="toggleCode('M000007-source');return false;">[Source]</a></p>
+          <div class="method-source-code" id="M000007-source">
+<pre>
+<span class="ruby-comment cmt"># File lib/rwikibot.rb, line 227</span>
+  <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">normalize</span> (<span class="ruby-identifier">title</span>)
+    
+    <span class="ruby-comment cmt"># Prepare the request</span>
+    <span class="ruby-ivar">@wikibotlogger</span>.<span class="ruby-identifier">debug</span> <span class="ruby-value str">&quot;NORMALIZE - Preparing request information...&quot;</span>
+    <span class="ruby-identifier">post_me</span> = {<span class="ruby-value str">'titles'</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">title</span>}
+    
+    <span class="ruby-comment cmt">#Make the request</span>
+    <span class="ruby-ivar">@wikibotlogger</span>.<span class="ruby-identifier">debug</span> <span class="ruby-value str">&quot;NORMALIZE - Asking make_request to normalize titles...&quot;</span>
+    <span class="ruby-identifier">normalized_result</span> = <span class="ruby-identifier">make_request</span>(<span class="ruby-value str">'query'</span>, <span class="ruby-identifier">post_me</span>)
+    <span class="ruby-ivar">@wikibotlogger</span>.<span class="ruby-identifier">debug</span> <span class="ruby-value str">&quot;NORMALIZE - We should have a result now...&quot;</span>
+  
+    <span class="ruby-ivar">@wikibotlogger</span>.<span class="ruby-identifier">debug</span> <span class="ruby-value str">&quot;NORMALIZE - Processing result...&quot;</span>
+    
+    
+    <span class="ruby-keyword kw">return</span> <span class="ruby-identifier">normalized_result</span>.<span class="ruby-identifier">fetch</span>(<span class="ruby-value str">'pages'</span>)
+  
+  <span class="ruby-keyword kw">end</span>
+</pre>
+          </div>
+        </div>
+      </div>
+
+      <div id="method-M000004" class="method-detail">
+        <a name="M000004"></a>
+
+        <div class="method-heading">
+          <a href="#M000004" class="method-signature">
+          <span class="method-name">recent_changes</span><span class="method-args">(options=nil)</span>
+          </a>
+        </div>
+      
+        <div class="method-description">
+          <p>
+Query
+</p>
+<p>
+This method will return Wiki-wide recent changes, almost as if looking at
+the Special page Recent Changes. But, in this format, a bot can handle it.
+Also we&#8216;re using the API. And bots can&#8216;t read.
+</p>
+<table>
+<tr><td valign="top">INPUT:</td><td>A hash of API-allowed keys and values. Default is same as API default.
+
+</td></tr>
+<tr><td valign="top">OUTPUT:</td><td>An array of hashes.
+
+</td></tr>
+</table>
+          <p><a class="source-toggle" href="#"
+            onclick="toggleCode('M000004-source');return false;">[Source]</a></p>
+          <div class="method-source-code" id="M000004-source">
+<pre>
+<span class="ruby-comment cmt"># File lib/rwikibot.rb, line 125</span>
+  <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">recent_changes</span> (<span class="ruby-identifier">options</span>=<span class="ruby-keyword kw">nil</span>)
+    
+    <span class="ruby-comment cmt"># This will allow any given bot to get recent changes. Then act on it. But that's another method</span>
+    <span class="ruby-comment cmt"># TODO - Persistent timestamp storage</span>
+    
+    <span class="ruby-ivar">@wikibotlogger</span>.<span class="ruby-identifier">debug</span>(<span class="ruby-value str">&quot;RECENT CHANGES - Preparing request information...&quot;</span>)
+    <span class="ruby-identifier">post_me</span> = {<span class="ruby-value str">&quot;list&quot;</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-value str">&quot;recentchanges&quot;</span>}
+    <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">options</span> <span class="ruby-operator">!=</span> <span class="ruby-keyword kw">nil</span>
+      <span class="ruby-identifier">options</span>.<span class="ruby-identifier">each</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">key</span>, <span class="ruby-identifier">value</span><span class="ruby-operator">|</span>
+        <span class="ruby-identifier">post_me</span>[<span class="ruby-identifier">key</span>] = <span class="ruby-identifier">value</span>
+      <span class="ruby-keyword kw">end</span>
+    <span class="ruby-keyword kw">end</span>
+    
+    <span class="ruby-comment cmt"># Make the request</span>
+    <span class="ruby-ivar">@wikibotlogger</span>.<span class="ruby-identifier">debug</span> <span class="ruby-value str">&quot;RECENT CHANGES - Asking make_request to get recentchanges...&quot;</span>
+    <span class="ruby-identifier">recentchanges_result</span> = <span class="ruby-identifier">make_request</span>(<span class="ruby-value str">'query'</span> , <span class="ruby-identifier">post_me</span>)
+    <span class="ruby-ivar">@wikibotlogger</span>.<span class="ruby-identifier">debug</span> <span class="ruby-value str">&quot;RECENT CHANGES - We should have a result of type query now.&quot;</span>
+    
+    <span class="ruby-comment cmt"># Figure out what to do now. Process, I'd think</span>
+    <span class="ruby-ivar">@wikibotlogger</span>.<span class="ruby-identifier">debug</span> <span class="ruby-value str">&quot;RECENT CHANGES - Processing result...&quot;</span>
+    
+    <span class="ruby-keyword kw">return</span> <span class="ruby-identifier">recentchanges_result</span>.<span class="ruby-identifier">fetch</span>(<span class="ruby-value str">'recentchanges'</span>)
+    
+  <span class="ruby-keyword kw">end</span>
+</pre>
+          </div>
+        </div>
+      </div>
+
+      <div id="method-M000006" class="method-detail">
+        <a name="M000006"></a>
+
+        <div class="method-heading">
+          <a href="#M000006" class="method-signature">
+          <span class="method-name">redirects</span><span class="method-args">(title, options = nil)</span>
+          </a>
+        </div>
+      
+        <div class="method-description">
+          <p>
+Query
+</p>
+<p>
+This will return any <a href="RWikiBot.html#M000006">redirects</a> from an
+article title so that you know where it ends. Useful to check for <a
+href="RWikiBot.html#M000006">redirects</a>, but mostly here for
+completeness of the framework.
+</p>
+<table>
+<tr><td valign="top">INPUT:</td><td>A string of pipe-delimited titles (&#8216;Apple|Baseball|Car port&#8217;),
+and an optional hash of API acceptable values.
+
+</td></tr>
+<tr><td valign="top">OUTPUT:</td><td>An array of <a href="RWikiBot.html#M000006">redirects</a>.
+
+</td></tr>
+</table>
+          <p><a class="source-toggle" href="#"
+            onclick="toggleCode('M000006-source');return false;">[Source]</a></p>
+          <div class="method-source-code" id="M000006-source">
+<pre>
+<span class="ruby-comment cmt"># File lib/rwikibot.rb, line 192</span>
+  <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">redirects</span> (<span class="ruby-identifier">title</span>, <span class="ruby-identifier">options</span> = <span class="ruby-keyword kw">nil</span>)
+    
+    <span class="ruby-comment cmt"># Prepare the request</span>
+    <span class="ruby-ivar">@wikibotlogger</span>.<span class="ruby-identifier">debug</span> <span class="ruby-value str">&quot;REDIRECTS - Preparing request information...&quot;</span>
+    <span class="ruby-identifier">post_me</span> = {<span class="ruby-value str">'titles'</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">title</span>, <span class="ruby-value str">'redirects'</span>=<span class="ruby-operator">&gt;</span><span class="ruby-value str">''</span>, <span class="ruby-value str">'prop'</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-value str">'info'</span>}
+    
+    <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">options</span> <span class="ruby-operator">!=</span> <span class="ruby-keyword kw">nil</span>
+      <span class="ruby-ivar">@wikibotlogger</span>.<span class="ruby-identifier">debug</span>(<span class="ruby-value str">&quot;REDIRECTS - Additional options added by requestor. Adding to post_me...&quot;</span>)
+      <span class="ruby-identifier">options</span>.<span class="ruby-identifier">each_pair</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">key</span>, <span class="ruby-identifier">value</span><span class="ruby-operator">|</span>
+        <span class="ruby-identifier">post_me</span>[<span class="ruby-identifier">key</span>] = <span class="ruby-identifier">value</span>
+        <span class="ruby-ivar">@wikibotlogger</span>.<span class="ruby-identifier">debug</span> <span class="ruby-node">&quot;REDIRECTS - Added #{post_me[key]}&quot;</span>
+      <span class="ruby-keyword kw">end</span>
+      <span class="ruby-ivar">@wikibotlogger</span>.<span class="ruby-identifier">debug</span>(<span class="ruby-value str">&quot;REDIRECTS - No more additional options. Moving on...&quot;</span>)
+    <span class="ruby-keyword kw">end</span>
+    
+    <span class="ruby-comment cmt">#Make the request</span>
+    <span class="ruby-ivar">@wikibotlogger</span>.<span class="ruby-identifier">debug</span> <span class="ruby-value str">&quot;REDIRECTS - Asking make_request find redirects...&quot;</span>
+    <span class="ruby-identifier">redirects_result</span> = <span class="ruby-identifier">make_request</span>(<span class="ruby-value str">'query'</span>, <span class="ruby-identifier">post_me</span>)
+    <span class="ruby-ivar">@wikibotlogger</span>.<span class="ruby-identifier">debug</span> <span class="ruby-value str">&quot;REDIRECTS - We should have a result now...&quot;</span>
+  
+    <span class="ruby-ivar">@wikibotlogger</span>.<span class="ruby-identifier">debug</span> <span class="ruby-value str">&quot;REDIRECTS - Processing result...&quot;</span>
+    
+    
+    <span class="ruby-keyword kw">return</span> <span class="ruby-identifier">redirects_result</span>.<span class="ruby-identifier">fetch</span>(<span class="ruby-value str">'pages'</span>)
+  
+  <span class="ruby-keyword kw">end</span>
+</pre>
+          </div>
+        </div>
+      </div>
+
+      <div id="method-M000010" class="method-detail">
+        <a name="M000010"></a>
+
+        <div class="method-heading">
+          <a href="#M000010" class="method-signature">
+          <span class="method-name">revisions</span><span class="method-args">(titles, options = nil)</span>
+          </a>
+        </div>
+      
+        <div class="method-description">
+          <p>
+Prop - Revisions
+</p>
+<p>
+This is the main way of accessing content and page specific information
+from the wiki. It has multiple uses as described in the API, Its also
+considerably more complex than the other methods. Enjoy it. A final note -
+I&#8216;d really be familiar with this method in the API since I&#8216;ve
+spent a lot of time trying to figure it out myself.
+</p>
+<p>
+Please be sure to add the RVPROP key at least, otherwise you&#8216;ll just
+get the basic information of revid, oldid and pageid. Boring.
+</p>
+<table>
+<tr><td valign="top">INPUT:</td><td>A string of article titles (pipe-delimited), and a hash of API-allowed keys
+and values. Default is same as API default.
+
+</td></tr>
+<tr><td valign="top">OUTPUT:</td><td>An array of hashes.
+
+</td></tr>
+</table>
+          <p><a class="source-toggle" href="#"
+            onclick="toggleCode('M000010-source');return false;">[Source]</a></p>
+          <div class="method-source-code" id="M000010-source">
+<pre>
+<span class="ruby-comment cmt"># File lib/rwikibot.rb, line 314</span>
+  <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">revisions</span>(<span class="ruby-identifier">titles</span>, <span class="ruby-identifier">options</span> = <span class="ruby-keyword kw">nil</span>)
+    
+    <span class="ruby-comment cmt"># Prepare the request! Notify the logger!</span>
+    <span class="ruby-ivar">@wikibotlogger</span>.<span class="ruby-identifier">debug</span> <span class="ruby-value str">&quot;REVISIONS - Preparing the requeset...&quot;</span>
+    <span class="ruby-identifier">post_me</span> = {<span class="ruby-value str">'prop'</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-value str">'revisions'</span>, <span class="ruby-value str">'titles'</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">titles</span>}
+    
+    <span class="ruby-comment cmt"># Handle any additional options</span>
+    <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">options</span> <span class="ruby-operator">!=</span> <span class="ruby-keyword kw">nil</span>
+      <span class="ruby-ivar">@wikibotlogger</span>.<span class="ruby-identifier">debug</span>(<span class="ruby-value str">&quot;REVISIONS - Additional options added by requestor. Adding to post_me...&quot;</span>)
+      <span class="ruby-identifier">options</span>.<span class="ruby-identifier">each_pair</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">key</span>, <span class="ruby-identifier">value</span><span class="ruby-operator">|</span>
+        <span class="ruby-identifier">post_me</span>[<span class="ruby-identifier">key</span>] = <span class="ruby-identifier">value</span>
+        <span class="ruby-ivar">@wikibotlogger</span>.<span class="ruby-identifier">debug</span> <span class="ruby-node">&quot;REVISIONS - Added #{post_me[key]}&quot;</span>
+      <span class="ruby-keyword kw">end</span>
+      <span class="ruby-ivar">@wikibotlogger</span>.<span class="ruby-identifier">debug</span>(<span class="ruby-value str">&quot;REVISIONS - No more additional options. Moving on...&quot;</span>)
+    <span class="ruby-keyword kw">end</span>
+    
+    <span class="ruby-comment cmt"># Make the request. Becuase we care.</span>
+    <span class="ruby-ivar">@wikibotlogger</span>.<span class="ruby-identifier">debug</span> <span class="ruby-node">&quot;REVISIONS - Asking make_request to get revision for articles(s) #{titles}&quot;</span>
+    <span class="ruby-identifier">revisions_result</span> = <span class="ruby-identifier">make_request</span>(<span class="ruby-value str">'query'</span>, <span class="ruby-identifier">post_me</span> )
+    <span class="ruby-ivar">@wikibotlogger</span>.<span class="ruby-identifier">debug</span> <span class="ruby-value str">&quot;REVISIONS - We should have a result now...&quot;</span>
+    
+    <span class="ruby-comment cmt">#Process the results</span>
+    <span class="ruby-ivar">@wikibotlogger</span>.<span class="ruby-identifier">debug</span> <span class="ruby-value str">&quot;REVISIONS - Preparing results...&quot;</span>
+    
+    <span class="ruby-keyword kw">return</span> <span class="ruby-identifier">revisions_result</span>.<span class="ruby-identifier">fetch</span>(<span class="ruby-value str">'pages'</span>)
+    
+  <span class="ruby-keyword kw">end</span>
+</pre>
+          </div>
+        </div>
+      </div>
+
+      <div id="method-M000011" class="method-detail">
+        <a name="M000011"></a>
+
+        <div class="method-heading">
+          <a href="#M000011" class="method-signature">
+          <span class="method-name">site_info</span><span class="method-args">(siprop = 'general')</span>
+          </a>
+        </div>
+      
+        <div class="method-description">
+          <p>
+Meta
+</p>
+<p>
+This is the only meta method. It will return site information. I chose not
+to allow it to specify, and it will only return all known properties.
+api.php?action=query&amp;meta=siteinfo&amp;siprop=general|namespaces
+</p>
+<table>
+<tr><td valign="top">INPUT:</td><td>siprop is either &#8216;general&#8217; or &#8216;namespaces&#8217;.
+
+</td></tr>
+<tr><td valign="top">OUTPUT:</td><td>A hash of values about site information.
+
+</td></tr>
+</table>
+          <p><a class="source-toggle" href="#"
+            onclick="toggleCode('M000011-source');return false;">[Source]</a></p>
+          <div class="method-source-code" id="M000011-source">
+<pre>
+<span class="ruby-comment cmt"># File lib/rwikibot.rb, line 350</span>
+  <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">site_info</span> (<span class="ruby-identifier">siprop</span> = <span class="ruby-value str">'general'</span>)
+    
+    <span class="ruby-ivar">@wikibotlogger</span>.<span class="ruby-identifier">debug</span> <span class="ruby-value str">&quot;SITE INFO - Preparing request information...&quot;</span>
+    
+    <span class="ruby-comment cmt"># Make the request</span>
+    <span class="ruby-identifier">post_me</span> = {<span class="ruby-value str">&quot;meta&quot;</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-value str">&quot;siteinfo&quot;</span> , <span class="ruby-value str">&quot;siprop&quot;</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">siprop</span>}
+    
+    
+    <span class="ruby-comment cmt">#Make the request!</span>
+    <span class="ruby-ivar">@wikibotlogger</span>.<span class="ruby-identifier">debug</span> <span class="ruby-value str">&quot;SITE INFO - Asking make_request to get site info&quot;</span>
+    <span class="ruby-identifier">siteinfo_result</span> = <span class="ruby-identifier">make_request</span>(<span class="ruby-value str">'query'</span>, <span class="ruby-identifier">post_me</span>)
+    <span class="ruby-ivar">@wikibotlogger</span>.<span class="ruby-identifier">debug</span> <span class="ruby-value str">&quot;SITE INFO - We should have a result of type site info now.&quot;</span>
+    
+    <span class="ruby-comment cmt"># Process results</span>
+    <span class="ruby-ivar">@wikibotlogger</span>.<span class="ruby-identifier">debug</span> <span class="ruby-value str">&quot;SITE INFO - Processing result...&quot;</span>
+    
+    <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">siprop</span> <span class="ruby-operator">==</span> <span class="ruby-value str">'general'</span>
+      <span class="ruby-keyword kw">return</span> <span class="ruby-identifier">siteinfo_result</span>.<span class="ruby-identifier">fetch</span>(<span class="ruby-value str">'general'</span>)
+    <span class="ruby-keyword kw">else</span>
+      <span class="ruby-keyword kw">return</span> <span class="ruby-identifier">siteinfo_result</span>.<span class="ruby-identifier">fetch</span>(<span class="ruby-value str">'namespaces'</span>)
+    <span class="ruby-keyword kw">end</span>
+    
+  <span class="ruby-keyword kw">end</span>
+</pre>
+          </div>
+        </div>
+      </div>
+
+      <div id="method-M000003" class="method-detail">
+        <a name="M000003"></a>
+
+        <div class="method-heading">
+          <a href="#M000003" class="method-signature">
+          <span class="method-name">watchlist</span><span class="method-args">(options=nil)</span>
+          </a>
+        </div>
+      
+        <div class="method-description">
+          <p>
+Watchlist
+</p>
+<p>
+This method will get the <a href="RWikiBot.html#M000003">watchlist</a> for
+the bot&#8216;s MediaWiki username. This is really onlu useful if you want
+the bot to watch a specific list of pages, and would require the bot
+maintainer to <a href="RWikiBot.html#M000002">login</a> to the wiki as the
+bot to set the <a href="RWikiBot.html#M000003">watchlist</a>.
+</p>
+<table>
+<tr><td valign="top">INPUT:</td><td>Options is a hash of API allowed fields that will be passed.
+
+</td></tr>
+<tr><td valign="top">OUTPUT:</td><td>Returns an array of hashes.
+
+</td></tr>
+</table>
+          <p><a class="source-toggle" href="#"
+            onclick="toggleCode('M000003-source');return false;">[Source]</a></p>
+          <div class="method-source-code" id="M000003-source">
+<pre>
+<span class="ruby-comment cmt"># File lib/rwikibot.rb, line 96</span>
+  <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">watchlist</span> (<span class="ruby-identifier">options</span>=<span class="ruby-keyword kw">nil</span>)
+    <span class="ruby-comment cmt"># Get the bot's watchlist</span>
+    <span class="ruby-ivar">@wikibotlogger</span>.<span class="ruby-identifier">debug</span>(<span class="ruby-value str">&quot;WATCHLIST - Preparing request information...&quot;</span>)
+    <span class="ruby-identifier">post_me</span> = {<span class="ruby-value str">'list'</span>=<span class="ruby-operator">&gt;</span><span class="ruby-value str">'watchlist'</span>}
+    
+    <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">options</span> <span class="ruby-operator">!=</span> <span class="ruby-keyword kw">nil</span>
+      <span class="ruby-identifier">options</span>.<span class="ruby-identifier">each</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">key</span>, <span class="ruby-identifier">value</span><span class="ruby-operator">|</span>
+        <span class="ruby-identifier">post_me</span>[<span class="ruby-identifier">key</span>] = <span class="ruby-identifier">value</span>
+      <span class="ruby-keyword kw">end</span>
+    <span class="ruby-keyword kw">end</span>
+    
+    <span class="ruby-comment cmt"># Make the request</span>
+    <span class="ruby-ivar">@wikibotlogger</span>.<span class="ruby-identifier">debug</span> <span class="ruby-value str">&quot;WATCHLIST - Asking make_request to get watchlist...&quot;</span>
+    <span class="ruby-identifier">watchlist_result</span> = <span class="ruby-identifier">make_request</span>(<span class="ruby-value str">'query'</span>, <span class="ruby-identifier">post_me</span>)
+    <span class="ruby-ivar">@wikibotlogger</span>.<span class="ruby-identifier">debug</span> <span class="ruby-value str">&quot;WATCHLIST - We should have a result of type query now.&quot;</span>
+    
+    <span class="ruby-comment cmt">#Process into a Hash for return</span>
+    <span class="ruby-ivar">@wikibotlogger</span>.<span class="ruby-identifier">debug</span> <span class="ruby-value str">&quot;WATCHLIST - Processing result...&quot;</span>
+    <span class="ruby-keyword kw">return</span> <span class="ruby-identifier">watchlist_result</span>.<span class="ruby-identifier">fetch</span>(<span class="ruby-value str">'watchlist'</span>)
+    
+  <span class="ruby-keyword kw">end</span>
+</pre>
+          </div>
+        </div>
+      </div>
+
+
+    </div>
+
+
+  </div>
+
+
+<div id="validator-badges">
+  <p><small><a href="http://validator.w3.org/check/referer">[Validate]</a></small></p>
+</div>
+
+</body>
+</html>

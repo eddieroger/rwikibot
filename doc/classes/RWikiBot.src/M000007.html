@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html>
+<head>
+  <title>redirect? (RWikiBot)</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+  <link rel="stylesheet" href="../.././rdoc-style.css" type="text/css" media="screen" />
+</head>
+<body class="standalone-code">
+  <pre><span class="ruby-comment cmt"># File lib/rwikibot.rb, line 231</span>
+  <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">redirect?</span> (<span class="ruby-identifier">title</span>)
+    
+    <span class="ruby-comment cmt"># Prepare the request</span>
+    <span class="ruby-ivar">@wikibotlogger</span>.<span class="ruby-identifier">debug</span> <span class="ruby-value str">&quot;REDIRECT? - Preparing request information...&quot;</span>
+    <span class="ruby-identifier">post_me</span> = {<span class="ruby-value str">'titles'</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">title</span>, <span class="ruby-value str">'redirects'</span>=<span class="ruby-operator">&gt;</span><span class="ruby-value str">''</span>, <span class="ruby-value str">'prop'</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-value str">'info'</span>}
+    
+    
+    <span class="ruby-comment cmt">#Make the request</span>
+    <span class="ruby-ivar">@wikibotlogger</span>.<span class="ruby-identifier">debug</span> <span class="ruby-value str">&quot;REDIRECT? - Asking make_request find redirects...&quot;</span>
+    <span class="ruby-identifier">redirects_result</span> = <span class="ruby-identifier">make_request</span>(<span class="ruby-value str">'query'</span>, <span class="ruby-identifier">post_me</span>)
+    <span class="ruby-ivar">@wikibotlogger</span>.<span class="ruby-identifier">debug</span> <span class="ruby-value str">&quot;REDIRECT? - We should have a result now...&quot;</span>
+  
+    <span class="ruby-ivar">@wikibotlogger</span>.<span class="ruby-identifier">debug</span> <span class="ruby-value str">&quot;REDIRECT? - Processing result...&quot;</span>
+    
+    
+    <span class="ruby-keyword kw">return</span> <span class="ruby-identifier">redirects_result</span>.<span class="ruby-identifier">has_key?</span>(<span class="ruby-value str">'redirects'</span>)
+    
+  <span class="ruby-keyword kw">end</span></pre>
+</body>
+</html>

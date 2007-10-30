@@ -1,0 +1,51 @@
+RWikiBot ChangeLog   
+
+1.1
+	- Switched from YAML to XML for a handful of reasons, most of which being poorly formatted YAML errors in API
+
+1.0.10
+	- Changed a get back to post since the bug wasn't with me. 
+
+1.0.9
+	- Disabled Logging because of permission errors on writing log files as a MediaWiki extension
+
+1.0.8
+	- Switched BACK to initialize-time config since calling from a hook didn't play with the files right, I think
+
+1.0.7
+	- Added PAGEID_TO_TITLE
+	- Turned Logger level up to INFO-  sorry for forgetting that :-)
+
+1.0.6
+	- Added VERSION
+	- Removed some _more_ debugging code
+	- Fixed login code to send back tokens and things, thereby fixing login altogether. Bots are now welcome!
+
+1.0.5
+	- Added parameters for queries to the rdoc - save MediaWiki some bandwidth
+	- Added BACKLINKS, PAGE_EXISTS?, EMBEDDED_IN, IMAGE_EMBEDDED_IN
+	- Fixed a bug in ALL_PAGES, where it wasn't really sending the options hash as part of the request. Oops. 
+	- Removed some debug puts
+	- Premiered the RWikiBot logo. Not in the source, but it exists now.
+	
+1.0.4
+	- Changed config.yaml to sample-config.yaml
+	- Had rake include the sample-config.yaml file
+	- Fixed broken cookie code to ask for wikicookieprefix, which is usually dbname+tableprefix
+
+1.0.3
+	- Bugfix in config file
+
+1.0.2
+	- Changed initialize to ask for a configuration to use, defaulting to 'default'
+	- Modified config.yaml to prompt for wikidbprefix, which is the cookie identifier. 
+	- PATCH: Changed bake to search use wikidbprefix in cookie name. 
+
+1.0.1
+	- Added very basic error handing around the MAKE_REQUEST method since MediaWiki returns invalid YAML 
+	- Fixed login method to accept domain value
+	- Check for domain being present and set in config.yaml
+	- Added redirect? method to return true/false if title is a redirect page
+	- Changed from "framework" to "library"
+
+1.0.0 - Initial Version

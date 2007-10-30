@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html>
+<head>
+  <title>redirects (RWikiBot)</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+  <link rel="stylesheet" href="../.././rdoc-style.css" type="text/css" media="screen" />
+</head>
+<body class="standalone-code">
+  <pre><span class="ruby-comment cmt"># File lib/rwikibot.rb, line 197</span>
+  <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">redirects</span> (<span class="ruby-identifier">title</span>, <span class="ruby-identifier">options</span> = <span class="ruby-keyword kw">nil</span>)
+    
+    <span class="ruby-comment cmt"># Prepare the request</span>
+    <span class="ruby-ivar">@wikibotlogger</span>.<span class="ruby-identifier">debug</span> <span class="ruby-value str">&quot;REDIRECTS - Preparing request information...&quot;</span>
+    <span class="ruby-identifier">post_me</span> = {<span class="ruby-value str">'titles'</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">title</span>, <span class="ruby-value str">'redirects'</span>=<span class="ruby-operator">&gt;</span><span class="ruby-value str">''</span>, <span class="ruby-value str">'prop'</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-value str">'info'</span>}
+    
+    <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">options</span> <span class="ruby-operator">!=</span> <span class="ruby-keyword kw">nil</span>
+      <span class="ruby-ivar">@wikibotlogger</span>.<span class="ruby-identifier">debug</span>(<span class="ruby-value str">&quot;REDIRECTS - Additional options added by requestor. Adding to post_me...&quot;</span>)
+      <span class="ruby-identifier">options</span>.<span class="ruby-identifier">each_pair</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">key</span>, <span class="ruby-identifier">value</span><span class="ruby-operator">|</span>
+        <span class="ruby-identifier">post_me</span>[<span class="ruby-identifier">key</span>] = <span class="ruby-identifier">value</span>
+        <span class="ruby-ivar">@wikibotlogger</span>.<span class="ruby-identifier">debug</span> <span class="ruby-node">&quot;REDIRECTS - Added #{post_me[key]}&quot;</span>
+      <span class="ruby-keyword kw">end</span>
+      <span class="ruby-ivar">@wikibotlogger</span>.<span class="ruby-identifier">debug</span>(<span class="ruby-value str">&quot;REDIRECTS - No more additional options. Moving on...&quot;</span>)
+    <span class="ruby-keyword kw">end</span>
+    
+    <span class="ruby-comment cmt">#Make the request</span>
+    <span class="ruby-ivar">@wikibotlogger</span>.<span class="ruby-identifier">debug</span> <span class="ruby-value str">&quot;REDIRECTS - Asking make_request find redirects...&quot;</span>
+    <span class="ruby-identifier">redirects_result</span> = <span class="ruby-identifier">make_request</span>(<span class="ruby-value str">'query'</span>, <span class="ruby-identifier">post_me</span>)
+    <span class="ruby-ivar">@wikibotlogger</span>.<span class="ruby-identifier">debug</span> <span class="ruby-value str">&quot;REDIRECTS - We should have a result now...&quot;</span>
+  
+    <span class="ruby-ivar">@wikibotlogger</span>.<span class="ruby-identifier">debug</span> <span class="ruby-value str">&quot;REDIRECTS - Processing result...&quot;</span>
+    
+    
+    <span class="ruby-keyword kw">return</span> <span class="ruby-identifier">redirects_result</span>.<span class="ruby-identifier">fetch</span>(<span class="ruby-value str">'pages'</span>)
+  
+  <span class="ruby-keyword kw">end</span></pre>
+</body>
+</html>
