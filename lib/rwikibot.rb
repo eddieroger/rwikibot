@@ -13,7 +13,7 @@ require 'uri'
 require 'yaml'
 require 'cgi'
 require 'logger'
-require 'lib/exceptions.rb'
+require 'exceptions.rb'
 
 require 'rubygems'
 require 'xmlsimple'
@@ -567,11 +567,11 @@ class RWikiBot
     post_this['action'] = action
     
     # Despite me coding this the way the API doc says, it doesn't work. Commenting out until clarity is returned. 
-    # if @config.fetch('logged_in')
-    #   post_this['lgusername'] = @config.fetch('lgusername')
-    #   post_this['lgtoken'] = @config.fetch('lgtoken')
-    #   post_this['lguserid'] = @config.fetch('lguserid')
-    # end
+    if @config.fetch('logged_in')
+      post_this['lgusername'] = @config.fetch('lgusername')
+      post_this['lgtoken'] = @config.fetch('lgtoken')
+      post_this['lguserid'] = @config.fetch('lguserid')
+     end
   
     #change - preparing a POST string instead of hash. 
     post_string = ''
@@ -587,9 +587,9 @@ class RWikiBot
       cookies = ""
     end
     
-    puts post_string
+    #puts post_string
     
-    resp = @http.post( @config.fetch('uri').path , post_string ,  {'User-agent'=>'RWikiBot/1.0', 'Cookie' => cookies } )
+    resp = @http.post( @config.fetch('uri').path , post_string ,  {'User-agent'=>'RWikiBot/1.1', 'Cookie' => cookies } )
     return_result = XmlSimple.xml_in(resp.body, { 'ForceArray' => false} )
     if return_result.has_key? action
       return_result = return_result.fetch(action)
