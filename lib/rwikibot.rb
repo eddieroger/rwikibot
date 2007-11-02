@@ -1,5 +1,4 @@
-# RWikiBot 1.1
-# 
+# RWikiBot 1.1# 
 # This is a framework upon which to create MediaWiki Bots. It provides a set of methods to acccess MediaWiki's API and return information in 
 # various forms, depending on the type of information returned. By abstracting these methods into a Bot object, cleaner script code can be
 # written later. Furthermore, it facilitates the updating of the API without breaking old bots. Last, but not least, its good to abstract. 
@@ -581,15 +580,15 @@ class RWikiBot
   
     #Send the actual request with exception handling
     
-    if (@config['logged_in'])
-      cookies = "#{@config['prefix']}UserName=#{@config['lgusername']}; #{@config['prefix']}UserID=#{@config['lguserid']}; #{@config['prefix']}Token=#{@config['lgtoken']}"
-    else
-      cookies = ""
-    end
+    #if (@config['logged_in'])
+    #  cookies = "#{@config['prefix']}UserName=#{@config['lgusername']}; #{@config['prefix']}UserID=#{@config['lguserid']}; #{@config['prefix']}Token=#{@config['lgtoken']}"
+    #else
+    #  cookies = ""
+    #end
     
     #puts post_string
     
-    resp = @http.post( @config.fetch('uri').path , post_string ,  {'User-agent'=>'RWikiBot/1.1', 'Cookie' => cookies } )
+    resp = @http.post( @config.fetch('uri').path , post_string ,  {'User-agent'=>'RWikiBot/1.1' }) #, 'Cookie' => cookies } )
     return_result = XmlSimple.xml_in(resp.body, { 'ForceArray' => false} )
     if return_result.has_key? action
       return_result = return_result.fetch(action)
