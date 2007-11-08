@@ -23,12 +23,13 @@ require 'xmlsimple'
 class RWikiBot
 
   
-  attr_accessor :http, :config, :botname
+#  attr_accessor :http, :config, :botname
+#  we don't really need to be accessing those publicly 
   
   # New bots hope for three attributes, but require none. The first is simply the name of the bot for logging purposes. The second is the debug level constant, and third is the logfile.
   #
   # Example: bot = RWikiBot.new("TestBot", "RWikiBot", "myPassw0rd", "http://en.wikipedia.org/w/api.php")
-  def initialize ( name = "TestBot", username = 'RWikiBot', password = 'rwikibot', api_path = 'http://localhost:8888/wiki/api.php', prefix="", domain = '')
+  def initialize ( username = 'RWikiBot', password = 'rwikibot', api_path = 'http://localhost:8888/wiki/api.php', domain = '')
 
     @botname = name
     @config = Hash.new
@@ -44,7 +45,7 @@ class RWikiBot
     @config['uri'] = URI.parse(@config.fetch('api_path'))
     
     @http = Net::HTTP.new(@config.fetch('uri').host, @config.fetch('uri').port)
-    @config['cookie'] = nil
+
   end
 
   # Login
@@ -77,6 +78,57 @@ class RWikiBot
     end
     
   end
+  
+  # Query - Title Normalization
+  # http://www.mediawiki.org/wiki/API:Query#Title_Normalization_.28done.29
+  #
+  # This little ditty returns a normalized version of the title passed to it. It is super useful because it will normalize an otherise poorly entered title, but most importantly it will let us know if an article exists or not by if it is able to normalize. 
+  #
+  # INPUT:: Titles, either singular or pipe-delimited.
+  # OUTPUT:: An array of normalized hashes.
+  def normalize (title)
+    
+    # Prepare the request
+    ##@wikibotlogger.debug "NORMALIZE - Preparing request information..."
+    post_me = {'titles' => title}
+    
+    #Make the request
+    ##@wikibotlogger.debug "NORMALIZE - Asking make_request to normalize titles..."
+    normalized_result = make_request('query', post_me)
+    ##@wikibotlogger.debug "NORMALIZE - We should have a result now..."
+  
+    ##@wikibotlogger.debug "NORMALIZE - Processing result..."
+    
+    
+    return normalized_result.fetch('pages')
+  
+  end
+  
+  # Query - Redirects
+  # http://www.mediawiki.org/wiki/API:Query#Redirects_.28done.29
+  #
+  # This will return any redirects from an article title so that you know where it ends. Useful to check for redirects, but mostly here for completeness of the framework.
+  #
+  # INPUT:: A string of pipe-delimited titles ('Apple|Baseball|Car port'), and an optional hash of API acceptable values.
+  # OUTPUT:: An array of redirects.
+  def redirects (title, options = nil)
+    
+    # Prepare the request
+    post_me = {'titles' => title, 'redirects'=>'', 'prop' => 'info'}
+    
+    if options != nil
+      options.each_pair do |key, value|
+        post_me[key] = value
+      end
+    end
+    
+    #Make the request
+    redirects_result = make_request('query', post_me)
+    
+    return redirects_result.fetch('pages')
+  
+  end
+  
   
   # Watchlist
   #
@@ -166,31 +218,7 @@ class RWikiBot
     return logevents_result.fetch('logevents')
 
   end
-  
-  # Query
-  #
-  # This will return any redirects from an article title so that you know where it ends. Useful to check for redirects, but mostly here for completeness of the framework.
-  #
-  # INPUT:: A string of pipe-delimited titles ('Apple|Baseball|Car port'), and an optional hash of API acceptable values.
-  # OUTPUT:: An array of redirects.
-  def redirects (title, options = nil)
     
-    # Prepare the request
-    post_me = {'titles' => title, 'redirects'=>'', 'prop' => 'info'}
-    
-    if options != nil
-      options.each_pair do |key, value|
-        post_me[key] = value
-      end
-    end
-    
-    #Make the request
-    redirects_result = make_request('query', post_me)
-    
-    return redirects_result.fetch('pages')
-  
-  end
-  
   
   # Query
   #
@@ -211,31 +239,39 @@ class RWikiBot
     
   end
   
-  
-  # Query
+  # Meta
   #
-  # This little ditty returns a normalized version of the title passed to it. It is super useful because it will normalize an otherise poorly entered title, but most importantly it will let us know if an article exists or not by if it is able to normalize. 
+  # This is the only meta method. It will return site information. I chose not to allow it to specify, and it will only return all known properties. 
+  # api.php?action=query&meta=siteinfo&siprop=general|namespaces
   #
-  # INPUT:: Titles, either singular or pipe-delimited.
-  # OUTPUT:: An array of normalized hashes.
-  def normalize (title)
+  # INPUT:: siprop is either 'general' or 'namespaces'. 
+  #
+  # OUTPUT:: A hash of values about site information.
+  def site_info (siprop = 'general')
     
-    # Prepare the request
-    ##@wikibotlogger.debug "NORMALIZE - Preparing request information..."
-    post_me = {'titles' => title}
+    ##@wikibotlogger.debug "SITE INFO - Preparing request information..."
     
-    #Make the request
-    ##@wikibotlogger.debug "NORMALIZE - Asking make_request to normalize titles..."
-    normalized_result = make_request('query', post_me)
-    ##@wikibotlogger.debug "NORMALIZE - We should have a result now..."
-  
-    ##@wikibotlogger.debug "NORMALIZE - Processing result..."
+    # Make the request
+    post_me = {"meta" => "siteinfo" , "siprop" => siprop}
     
     
-    return normalized_result.fetch('pages')
-  
+    #Make the request!
+    ##@wikibotlogger.debug "SITE INFO - Asking make_request to get site info"
+    siteinfo_result = make_request('query', post_me)
+    ##@wikibotlogger.debug "SITE INFO - We should have a result of type site info now."
+    
+    # Process results
+    ##@wikibotlogger.debug "SITE INFO - Processing result..."
+    
+    if siprop == 'general'
+      return siteinfo_result.fetch('general')
+    else
+      return siteinfo_result.fetch('namespaces')
+    end
+    
   end
-
+  
+  
   # List
   #
   # This will return a list of all pages in a given namespace. It returns a list of pages in with the normalized title and page ID, suitable for usage elsewhere. Accepts all parameters from the API in Hash form.
@@ -339,29 +375,29 @@ class RWikiBot
   # INPUT:: A normalized image title, and a hash of API-allowed keys and values. Default is same as API default.
   # PARAMETERS:: iefrom (paging), ienamespace (flt), ielimit (dflt=10, max=500/5000)
   # OUTPUT:: An array of hashes with images page links
-  # def image_embedded_in (title, options = nil) :nodoc:
-  #   
-  #   # This will get all pages. Limits vary based on user rights of the Bot. Set to bot.
-  #   ##@wikibotlogger.debug "IMAGE EMBEDDED IN - Preparing request information..."
-  #   post_me = {'list' => 'embeddedin', 'titles' => "#{title}" }
-  #    
-  #   
-  #   if options != nil
-  #     ##@wikibotlogger.debug("IMAGE EMBEDDED IN - Additional options added by requestor. Adding to post_me...")
-  #     options.each_pair do |key, value|
-  #       post_me[key] = value
-  #       ##@wikibotlogger.debug "IMAGE EMBEDDED IN - Added #{post_me[key]}"
-  #     end
-  #     ##@wikibotlogger.debug("IMAGE EMBEDDED IN - No more additional options. Moving on...")
-  #   end
-  #   
-  #   #make the request
-  #   ##@wikibotlogger.debug "IMAGE EMBEDDED IN - Asking make_request to get backlinks..."
-  #   imageembeddedin_result = make_request('query', post_me)
-  #   ##@wikibotlogger.debug "IMAGE EMBEDDED IN - We should have a result now..."
-  #   return imageembeddedin_result.fetch('embeddedin')
-  #   
-  # end
+  def image_embedded_in (title, options = nil) 
+   
+     # This will get all pages. Limits vary based on user rights of the Bot. Set to bot.
+     ##@wikibotlogger.debug "IMAGE EMBEDDED IN - Preparing request information..."
+     post_me = {'list' => 'embeddedin', 'titles' => "#{title}" }
+    
+   
+     if options != nil
+       ##@wikibotlogger.debug("IMAGE EMBEDDED IN - Additional options added by requestor. Adding to post_me...")
+       options.each_pair do |key, value|
+         post_me[key] = value
+         ##@wikibotlogger.debug "IMAGE EMBEDDED IN - Added #{post_me[key]}"
+       end
+       ##@wikibotlogger.debug("IMAGE EMBEDDED IN - No more additional options. Moving on...")
+     end
+   
+     #make the request
+     ##@wikibotlogger.debug "IMAGE EMBEDDED IN - Asking make_request to get backlinks..."
+     imageembeddedin_result = make_request('query', post_me)
+     ##@wikibotlogger.debug "IMAGE EMBEDDED IN - We should have a result now..."
+     return imageembeddedin_result.fetch('embeddedin')
+   
+   end
     
   # Prop = Info
   #

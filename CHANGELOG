@@ -2,6 +2,10 @@ RWikiBot ChangeLog
 
 1.1
 	- Switched from YAML to XML for a handful of reasons, most of which being poorly formatted YAML errors in API
+	- Disabled cookies from login since they're terrible and hard to maintain and bad long term practice and the API supports it (you're welcome)
+	- Striked the "name" field and "prefix" field from initialize. Those were antiquated anyway. 
+	- Reordered the methods to align with documentation
+	
 
 1.0.10
 	- Changed a get back to post since the bug wasn't with me. 
