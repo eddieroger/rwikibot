@@ -9,29 +9,21 @@
 # License:: GNU/GPL 2.0
 require 'net/http'
 require 'uri'
-require 'yaml'
 require 'cgi'
-require 'logger'
-require 'exceptions.rb'
+require 'exceptions'
 
 require 'rubygems'
 require 'xmlsimple'
-
-# This file has been changed. 
 
 #This is the main bot object. The goal is to represent every API method in some form here, and then write seperate, cleaner scripts in individual bot files utilizing this framework. Basically, this is an include at best.
 class RWikiBot
 
   
-#  attr_accessor :http, :config, :botname
-#  we don't really need to be accessing those publicly 
+	attr_accessor :http, :config, :botname
   
-  # New bots hope for three attributes, but require none. The first is simply the name of the bot for logging purposes. The second is the debug level constant, and third is the logfile.
-  #
-  # Example: bot = RWikiBot.new("TestBot", "RWikiBot", "myPassw0rd", "http://en.wikipedia.org/w/api.php")
   def initialize ( username = 'RWikiBot', password = 'rwikibot', api_path = 'http://localhost:8888/wiki/api.php', domain = '')
 
-    @botname = name
+
     @config = Hash.new
     
     # This had to come back since I was having config loading issues when being called from MediaWiki
@@ -39,8 +31,7 @@ class RWikiBot
     @config['password'] = password
     @config['api_path'] = api_path
     @config['domain']   = domain
-    @config['prefix']   = prefix
-    
+    @config['cookies']	= ""
     @config['logged_in'] = FALSE
     @config['uri'] = URI.parse(@config.fetch('api_path'))
     
@@ -61,20 +52,25 @@ class RWikiBot
     end
     
     #Calling make_request to actually log in
-    login_result = make_request('login', post_me)
-        
+    login_result = make_request('login', post_me)	
+	
     # Now we need to changed some @config stuff, specifically that we're logged in and the variables of that
     # This will also change the make_request, but I'll comment there
     if login_result.fetch('result') == "Success"
       # All lg variables are directly from API and stored in config that way
-      @config['logged_in'] = TRUE
-      @config['lgusername'] = login_result.fetch('lgusername')
-      @config['lguserid'] = login_result.fetch('lguserid')
-      @config['lgtoken'] = login_result.fetch('lgtoken') 
+      @config['logged_in'] 		= TRUE
+      @config['lgusername'] 	= login_result.fetch('lgusername')
+      @config['lguserid'] 		= login_result.fetch('lguserid')
+      @config['lgtoken'] 		= login_result.fetch('lgtoken')
+	  @config['cookieprefix'] 	= login_result.fetch('cookieprefix')
       puts "You are now logged in as: " + @config['lgusername'] 
       return TRUE
     else 
-      raise RWBLoginException(login_result)
+      puts "Login railed."
+	  login_result.each_pair do |key, value|
+		puts "#{key} => #{value}"
+	  end
+	  return FALSE
     end
     
   end
@@ -89,16 +85,10 @@ class RWikiBot
   def normalize (title)
     
     # Prepare the request
-    ##@wikibotlogger.debug "NORMALIZE - Preparing request information..."
     post_me = {'titles' => title}
     
     #Make the request
-    ##@wikibotlogger.debug "NORMALIZE - Asking make_request to normalize titles..."
-    normalized_result = make_request('query', post_me)
-    ##@wikibotlogger.debug "NORMALIZE - We should have a result now..."
-  
-    ##@wikibotlogger.debug "NORMALIZE - Processing result..."
-    
+    normalized_result = make_request('query', post_me)    
     
     return normalized_result.fetch('pages')
   
@@ -198,23 +188,15 @@ class RWikiBot
     post_me = {"list" => "logevents"}
     
     if options != nil
-      ##@wikibotlogger.debug("LOG EVENTS - Additional options added by requestor. Adding to post_me...")
       options.each_pair do |key, value|
         post_me[key] = value
-        ##@wikibotlogger.debug "LOG EVENTS - Added #{post_me[key]}"
       end
-      ##@wikibotlogger.debug("LOG EVENTS - No more additional options. Moving on...")
     end
     
     #Make the request!
-    ##@wikibotlogger.debug "LOG EVENTS = Asking make_request to get logevents"
     logevents_result = make_request('query', post_me)
-    ##@wikibotlogger.debug "LOG EVENTS - We should have a result of type logevents now."
     
-    # Process results
-    ##@wikibotlogger.debug "LOG EVENTS - Processing result..."
-    
-    
+    # Process results    
     return logevents_result.fetch('logevents')
 
   end
@@ -256,12 +238,9 @@ class RWikiBot
     
     
     #Make the request!
-    ##@wikibotlogger.debug "SITE INFO - Asking make_request to get site info"
     siteinfo_result = make_request('query', post_me)
-    ##@wikibotlogger.debug "SITE INFO - We should have a result of type site info now."
     
     # Process results
-    ##@wikibotlogger.debug "SITE INFO - Processing result..."
     
     if siprop == 'general'
       return siteinfo_result.fetch('general')
@@ -289,18 +268,13 @@ class RWikiBot
     
     
     if options != nil
-      ##@wikibotlogger.debug("ALL PAGES - Additional options added by requestor. Adding to post_me...")
       options.each_pair do |key, value|
         post_me[key] = value
-        ##@wikibotlogger.debug "ALL PAGES - Added #{post_me[key]}"
       end
-      ##@wikibotlogger.debug("ALL PAGES - No more additional options. Moving on...")
     end
     
     #make the request
-    ##@wikibotlogger.debug "ALL PAGES - Asking make_request to get all pages..."
     allpages_result = make_request('query', post_me)
-    ##@wikibotlogger.debug "ALL PAGES - We should have a result now..."
     
     return allpages_result.fetch('allpages')
     
@@ -316,23 +290,17 @@ class RWikiBot
   def backlinks (titles, options = nil)
     
     # This will get all pages. Limits vary based on user rights of the Bot. Set to bot.
-    ##@wikibotlogger.debug "BACKLINKS - Preparing request information..."
     post_me = {'list' => 'backlinks', 'titles' => "#{title}" }
      
     
     if options != nil
-      ##@wikibotlogger.debug("BACKLINKS - Additional options added by requestor. Adding to post_me...")
       options.each_pair do |key, value|
         post_me[key] = value
-        ##@wikibotlogger.debug "BACKLINKS - Added #{post_me[key]}"
       end
-      ##@wikibotlogger.debug("BACKLINKS - No more additional options. Moving on...")
     end
     
     #make the request
-    ##@wikibotlogger.debug "BACKLINKS - Asking make_request to get backlinks..."
     backlinks_result = make_request('query', post_me)
-    ##@wikibotlogger.debug "BACKLINKS - We should have a result now..."
     return backlinks_result.fetch('backlinks')
     
   end
@@ -352,18 +320,13 @@ class RWikiBot
      
     
     if options != nil
-      ##@wikibotlogger.debug("EMBEDDED IN - Additional options added by requestor. Adding to post_me...")
       options.each_pair do |key, value|
         post_me[key] = value
-        ##@wikibotlogger.debug "EMBEDDED IN - Added #{post_me[key]}"
       end
-      ##@wikibotlogger.debug("EMBEDDED IN - No more additional options. Moving on...")
     end
     
     #make the request
-    ##@wikibotlogger.debug "EMBEDDED IN - Asking make_request to get backlinks..."
     embeddedin_result = make_request('query', post_me)
-    ##@wikibotlogger.debug "EMBEDDED IN - We should have a result now..."
     return embeddedin_result.fetch('embeddedin')
     
   end
@@ -383,18 +346,13 @@ class RWikiBot
     
    
      if options != nil
-       ##@wikibotlogger.debug("IMAGE EMBEDDED IN - Additional options added by requestor. Adding to post_me...")
        options.each_pair do |key, value|
          post_me[key] = value
-         ##@wikibotlogger.debug "IMAGE EMBEDDED IN - Added #{post_me[key]}"
        end
-       ##@wikibotlogger.debug("IMAGE EMBEDDED IN - No more additional options. Moving on...")
      end
    
      #make the request
-     ##@wikibotlogger.debug "IMAGE EMBEDDED IN - Asking make_request to get backlinks..."
      imageembeddedin_result = make_request('query', post_me)
-     ##@wikibotlogger.debug "IMAGE EMBEDDED IN - We should have a result now..."
      return imageembeddedin_result.fetch('embeddedin')
    
    end
@@ -410,17 +368,12 @@ class RWikiBot
   def info (titles)
     
     # Basic quqery info
-    ##@wikibotlogger.debug "INFO - Preparing the query..."
     post_me = {"prop" => "info", 'titles' => titles}
     
     # Make the request
-    ##@wikibotlogger.debug "INFO - Asking make_request to get info"
     info_result = make_request('query', post_me)
-    ##@wikibotlogger.debug "INFO - We should have a result set now..."
     
-    # Result processing
-    ##@wikibotlogger.debug "INFO - Preparing results..."
-    
+    # Result processing    
     return info_result.fetch('pages')
   
   end
@@ -438,27 +391,19 @@ class RWikiBot
   def revisions(titles, options = nil)
     
     # Prepare the request! Notify the logger!
-    ##@wikibotlogger.debug "REVISIONS - Preparing the requeset..."
     post_me = {'prop' => 'revisions', 'titles' => titles}
     
     # Handle any additional options
     if options != nil
-      ##@wikibotlogger.debug("REVISIONS - Additional options added by requestor. Adding to post_me...")
       options.each_pair do |key, value|
         post_me[key] = value
-        ##@wikibotlogger.debug "REVISIONS - Added #{post_me[key]}"
       end
-      ##@wikibotlogger.debug("REVISIONS - No more additional options. Moving on...")
     end
     
     # Make the request. Becuase we care.
-    ##@wikibotlogger.debug "REVISIONS - Asking make_request to get revision for articles(s) #{titles}"
     revisions_result = make_request('query', post_me )
-    ##@wikibotlogger.debug "REVISIONS - We should have a result now..."
     
-    #Process the results
-    ##@wikibotlogger.debug "REVISIONS - Preparing results..."
-    
+    #Process the results    
     return revisions_result.fetch('pages')
     
   end
@@ -480,12 +425,9 @@ class RWikiBot
     
     
     #Make the request!
-    ##@wikibotlogger.debug "SITE INFO - Asking make_request to get site info"
     siteinfo_result = make_request('query', post_me)
-    ##@wikibotlogger.debug "SITE INFO - We should have a result of type site info now."
     
     # Process results
-    ##@wikibotlogger.debug "SITE INFO - Processing result..."
     
     if siprop == 'general'
       return siteinfo_result.fetch('general')
@@ -540,18 +482,11 @@ class RWikiBot
     post_me = {'titles' => title}
     
     #Make the request
-    ##@wikibotlogger.debug "PAGE EXISTS? - Asking make_request to verify page existence..."
     page_exists_result = make_request('query', post_me)
-    ##@wikibotlogger.debug "PAGE EXISTS? - We should have a result now..."
-  
-    ##@wikibotlogger.debug "PAGE EXISTS? - Processing result..."
-    
     
     if page_exists_result.fetch('pages')[0].has_key?('missing')
-      ##@wikibotlogger.debug "PAGE EXISTS? - The page #{title} does NOT exist. Sorry."
       return false
     else
-      ##@wikibotlogger.debug "PAGE EXISTS? - The page #{title} DOES exist. You lucky, lucky bot."
       return true
     end
     
@@ -574,17 +509,12 @@ class RWikiBot
   def pageid_to_title(id)
     
       # Prepare the request! Notify the logger!
-      ##@wikibotlogger.debug "PAGEID TO TITLE - Preparing the requeset..."
       post_me = {'prop' => 'info', 'pageids' => id}
 
       # Make the request. Becuase we care.
-      ##@wikibotlogger.debug "PAGEID TO TITLE - Asking make_request to get revision for pageid #{id}"
       id_result = make_request('query', post_me )
-      ##@wikibotlogger.debug "PAGEID TO TITLE - We should have a result now..."
 
       #Process the results
-      ##@wikibotlogger.debug "PAGEID TO TITLE - Preparing results..."
-
       return id_result.fetch('pages')[0].fetch('title')
 
   end
@@ -616,16 +546,20 @@ class RWikiBot
   
     #Send the actual request with exception handling
     
-    #if (@config['logged_in'])
-    #  cookies = "#{@config['prefix']}UserName=#{@config['lgusername']}; #{@config['prefix']}UserID=#{@config['lguserid']}; #{@config['prefix']}Token=#{@config['lgtoken']}"
-    #else
-    #  cookies = ""
-    #end
+    if (@config['logged_in'])
+      cookies = "#{@config['cookieprefix']}UserName=#{@config['lgusername']}; #{@config['cookieprefix']}UserID=#{@config['lguserid']}; #{@config['cookieprefix']}Token=#{@config['lgtoken']}"
+    else
+      cookies = ""
+    end
     
     #puts post_string
-    
-    resp = @http.post( @config.fetch('uri').path , post_string ,  {'User-agent'=>'RWikiBot/1.1' }) #, 'Cookie' => cookies } )
-    return_result = XmlSimple.xml_in(resp.body, { 'ForceArray' => false} )
+	headers =  {
+		'User-agent'=>'RWikiBot/1.1', 
+		'Cookie' => cookies
+	}
+    resp = @http.post( @config.fetch('uri').path , post_string ,  headers )
+    return_result = XmlSimple.xml_in(resp.body, { 'ForceArray' => false} )	
+	
     if return_result.has_key? action
       return_result = return_result.fetch(action)
     else
