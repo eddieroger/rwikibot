@@ -66,7 +66,7 @@ class RWikiBot
       puts "You are now logged in as: " + @config['lgusername'] 
       return TRUE
     else 
-      puts "Login railed."
+      puts "Login failed."
 	  login_result.each_pair do |key, value|
 		puts "#{key} => #{value}"
 	  end
@@ -519,6 +519,20 @@ class RWikiBot
 
   end
   
+  # This method should universally return tokens, just give title and type. You will receive a token string (suitable for use in other methods), so plan accordingly.
+  #
+  # INPUT:: title, intoken (type - delete, rollback, etc)
+  # OUTPUT:: A stringified token
+  def get_token(title, intoken)
+  
+	post_me = {'prop' => 'info', 'intoken' => intoken, 'title' => title}
+	
+	raw_token = make_request('query', post_me)
+	puts raw_token
+	return raw_token.fetch('query')[0].fetch('#{intoken}token')
+  
+  end
+  
   # The following methods are private and should only be called internally. 
   #
   # So don't screw around in here. Its like a house of cards, people.
@@ -527,46 +541,61 @@ class RWikiBot
   # Make Request is a method that actually handles making the request to the API. Since the API is somewhat standardized, this method is able to accept the action and a hash of variables, and it handles all the fun things MediaWiki likes to be weird over, like cookies and limits and actions. Its very solid, but I didn't want it public because it also does some post processing, and that's not very OO. 
   def make_request (action, post_this)
      
-    #Housekeeping. We need to add format and action to the request hash
-    post_this['format'] = 'xml'
-    post_this['action'] = action
-    
-    # Despite me coding this the way the API doc says, it doesn't work. Commenting out until clarity is returned. 
-    if @config.fetch('logged_in')
-      post_this['lgusername'] = @config.fetch('lgusername')
-      post_this['lgtoken'] = @config.fetch('lgtoken')
-      post_this['lguserid'] = @config.fetch('lguserid')
-     end
-  
-    #change - preparing a POST string instead of hash. 
-    post_string = ''
-    post_this.each_pair do |key, value|
-      post_string << "#{key}=#{value}&"
-    end
-  
-    #Send the actual request with exception handling
-    
-    if (@config['logged_in'])
-      cookies = "#{@config['cookieprefix']}UserName=#{@config['lgusername']}; #{@config['cookieprefix']}UserID=#{@config['lguserid']}; #{@config['cookieprefix']}Token=#{@config['lgtoken']}"
-    else
-      cookies = ""
-    end
-    
-    #puts post_string
-	headers =  {
-		'User-agent'=>'RWikiBot/1.1', 
-		'Cookie' => cookies
-	}
-    resp = @http.post( @config.fetch('uri').path , post_string ,  headers )
-    return_result = XmlSimple.xml_in(resp.body, { 'ForceArray' => false} )	
+	 begin
+		#Housekeeping. We need to add format and action to the request hash
+		puts "======================"
+		puts post_this
+		
+		
+		post_this['format'] = 'xml'
+		post_this['action'] = action
+		
+		# Despite me coding this the way the API doc says, it doesn't work. Commenting out until clarity is returned. 
+		if @config.fetch('logged_in')
+		  post_this['lgusername'] = @config.fetch('lgusername')
+		  post_this['lgtoken'] = @config.fetch('lgtoken')
+		  post_this['lguserid'] = @config.fetch('lguserid')
+		 end
+	  
+		#change - preparing a POST string instead of hash. 
+		post_string = ''
+		post_this.each_pair do |key, value|
+		  post_string << "#{key}=#{value}&"
+		end
+
+		
+		#Send the actual request with exception handling
+		
+		if (@config['logged_in'])
+		  cookies = "#{@config['cookieprefix']}UserName=#{@config['lgusername']}; #{@config['cookieprefix']}UserID=#{@config['lguserid']}; #{@config['cookieprefix']}Token=#{@config['lgtoken']}"
+		else
+		  cookies = ""
+		end
+		
+		#puts post_string
+		headers =  {
+			'User-agent'=>'RWikiBot/1.1', 
+			'Cookie' => cookies
+		}
+		resp = @http.post( @config.fetch('uri').path , post_string ,  headers )
+
+		puts resp.body
+		puts "======================"
+		
+				
+		return_result = XmlSimple.xml_in(resp.body, { 'ForceArray' => false} )	
+		
+		if return_result.has_key? action
+		  return_result = return_result.fetch(action)
+		else
+		  raise MediaWikiException.new(return_result.fetch('error'))
+		end
+		
+		return return_result 
 	
-    if return_result.has_key? action
-      return_result = return_result.fetch(action)
-    else
-      raise MediaWikiException.new(return_result.fetch('error'))
-    end
-    
-    return return_result 
+	rescue REXML::ParseException, MediaWikiException => error_text
+		puts "Error occured: " + error_text
+	end
   end
   
 end

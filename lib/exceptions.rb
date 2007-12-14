@@ -8,7 +8,7 @@ class MediaWikiException < Exception
   end
   
   def message()
-    return "#{@code}: #{@info}"
+    return 
   end
   
 end
@@ -21,6 +21,6 @@ class RWBLoginException < Exception
   end
   
   def message
-    return "#{@error}: #{@details}"
+    return 
   end
 end
