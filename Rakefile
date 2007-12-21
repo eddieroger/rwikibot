@@ -4,7 +4,7 @@ require 'rake/gempackagetask'
 spec = Gem::Specification.new do |s|
 	s.platform = Gem::Platform::RUBY
 	s.name = "rwikibot"
-	s.version = "1.1"
+	s.version = "1.2"
 	s.author = "Eddie Roger"
 	s.email = "eddieroger @nospam@ gmail.com"
 	s.summary = "A library for creating MediaWiki bots."

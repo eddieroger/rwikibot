@@ -36,6 +36,9 @@ class RWikiBot
     @config['uri'] = URI.parse(@config.fetch('api_path'))
     
     @http = Net::HTTP.new(@config.fetch('uri').host, @config.fetch('uri').port)
+	
+	# This has to be last methinks
+	@config['api_version'] = version.to_f
 
   end
 
@@ -62,7 +65,7 @@ class RWikiBot
       @config['lgusername'] 	= login_result.fetch('lgusername')
       @config['lguserid'] 		= login_result.fetch('lguserid')
       @config['lgtoken'] 		= login_result.fetch('lgtoken')
-	  @config['cookieprefix'] 	= login_result.fetch('cookieprefix')
+	  @config['cookieprefix'] 	= login_result.fetch('cookieprefix') 
       puts "You are now logged in as: " + @config['lgusername'] 
       return TRUE
     else 
@@ -84,14 +87,14 @@ class RWikiBot
   # OUTPUT:: An array of normalized hashes.
   def normalize (title)
     
-    # Prepare the request
-    post_me = {'titles' => title}
+	# Prepare the request
+	post_me = {'titles' => title}
     
-    #Make the request
-    normalized_result = make_request('query', post_me)    
-    
-    return normalized_result.fetch('pages')
-  
+	    #Make the request
+	normalized_result = make_request('query', post_me)    
+	    
+	return normalized_result.fetch('pages')
+	  
   end
   
   # Query - Redirects
@@ -276,7 +279,7 @@ class RWikiBot
     #make the request
     allpages_result = make_request('query', post_me)
     
-    return allpages_result.fetch('allpages')
+    return allpages_result.fetch('allpages')['p']
     
   end
 
@@ -537,6 +540,16 @@ class RWikiBot
   #
   # So don't screw around in here. Its like a house of cards, people.
   private 
+  
+  # Check Version is a private method that will be run at the start of every method to make sure the version of the API we're using is compliant with the method. It'll take a little work on my part, but it'll make developing against two different wikis easier. 
+  def check_version (min)
+	if min > @config['api_version']
+		puts "The version of the API you are using does not support this method. Please upgrade your version of MediaWiki."
+		return false
+	else
+		return true
+	end
+end
   
   # Make Request is a method that actually handles making the request to the API. Since the API is somewhat standardized, this method is able to accept the action and a hash of variables, and it handles all the fun things MediaWiki likes to be weird over, like cookies and limits and actions. Its very solid, but I didn't want it public because it also does some post processing, and that's not very OO. 
   def make_request (action, post_this)
