@@ -1,4 +1,5 @@
-# RWikiBot 1.1# 
+# RWikiBot 1.1
+# 
 # This is a framework upon which to create MediaWiki Bots. It provides a set of methods to acccess MediaWiki's API and return information in 
 # various forms, depending on the type of information returned. By abstracting these methods into a Bot object, cleaner script code can be
 # written later. Furthermore, it facilitates the updating of the API without breaking old bots. Last, but not least, its good to abstract. 
@@ -10,18 +11,16 @@
 require 'net/http'
 require 'uri'
 require 'cgi'
-require 'exceptions'
+# require 'exceptions'
+# require 'result'
 
 require 'rubygems'
 require 'xmlsimple'
 
 #This is the main bot object. The goal is to represent every API method in some form here, and then write seperate, cleaner scripts in individual bot files utilizing this framework. Basically, this is an include at best.
 class RWikiBot
-
   
-	attr_accessor :http, :config, :botname
-  
-  def initialize ( username = 'RWikiBot', password = 'rwikibot', api_path = 'http://localhost:8888/wiki/api.php', domain = '')
+  def initialize ( username = 'RWikiBot', password = 'testpassword', api_path = 'http://localhost:8888/api.php', domain = '')
 
 
     @config = Hash.new
@@ -35,18 +34,29 @@ class RWikiBot
     @config['logged_in'] = FALSE
     @config['uri'] = URI.parse(@config.fetch('api_path'))
     
-    @http = Net::HTTP.new(@config.fetch('uri').host, @config.fetch('uri').port)
+    # Commented out as a result of new method of posting in make_request
+    # @http = Net::HTTP.new(@config.fetch('uri').host, @config.fetch('uri').port)
 	
-	# This has to be last methinks
-	@config['api_version'] = version.to_f
+	  # This has to be last methinks
+	  @config['api_version'] = version.to_f
 
+  end
+  
+  # logged_in?
+  #
+  # A quick (and public) method of checking whether or not we're logged in, since I don't want @config exposed
+  #
+  # INPUT:: None
+  # OUTPUT:: boolean
+  def logged_in?
+    return Result.new(@config['logged_in'])
   end
 
   # Login
   #
   # This is the method that will allow the bot to log in to the wiki. Its not always necessary, but bots need to log in to save changes or retrieve watchlists. 
   #
-  # No variables are accepted and none are returned.
+  # No variables are accepted. Returns a Result object of true or false
   def login
     
     post_me = {'lgname'=>@config.fetch('username'),'lgpassword'=>@config.fetch('password')}
@@ -56,30 +66,27 @@ class RWikiBot
     
     #Calling make_request to actually log in
     login_result = make_request('login', post_me)	
-	
+    
     # Now we need to changed some @config stuff, specifically that we're logged in and the variables of that
     # This will also change the make_request, but I'll comment there
-    if login_result.fetch('result') == "Success"
+    if login_result.success?
       # All lg variables are directly from API and stored in config that way
-      @config['logged_in'] 		= TRUE
-      @config['lgusername'] 	= login_result.fetch('lgusername')
-      @config['lguserid'] 		= login_result.fetch('lguserid')
-      @config['lgtoken'] 		= login_result.fetch('lgtoken')
-	  @config['cookieprefix'] 	= login_result.fetch('cookieprefix') 
-      puts "You are now logged in as: " + @config['lgusername'] 
-      return TRUE
+      @config['logged_in'] 		  = TRUE
+      @config['lgusername'] 	  = login_result.get_result.fetch('lgusername')
+      @config['lguserid'] 		  = login_result.get_result.fetch('lguserid')
+      @config['lgtoken'] 		    = login_result.get_result.fetch('lgtoken')
+      @config['_session']       = login_result.get_result.fetch('sessionid')
+	    @config['cookieprefix'] 	= login_result.get_result.fetch('cookieprefix') 
+      return Result.new(TRUE, "You are now logged in as: #{@config['lgusername']}")
     else 
-      puts "Login failed."
-	  login_result.each_pair do |key, value|
-		puts "#{key} => #{value}"
+    
+      return Result.new(FALSE, "Login failed")
+	  
 	  end
-	  return FALSE
-    end
     
   end
   
   # Query - Title Normalization
-  # http://www.mediawiki.org/wiki/API:Query#Title_Normalization_.28done.29
   #
   # This little ditty returns a normalized version of the title passed to it. It is super useful because it will normalize an otherise poorly entered title, but most importantly it will let us know if an article exists or not by if it is able to normalize. 
   #
@@ -87,18 +94,17 @@ class RWikiBot
   # OUTPUT:: An array of normalized hashes.
   def normalize (title)
     
-	# Prepare the request
-	post_me = {'titles' => title}
+	  # Prepare the request
+  	post_me = {'titles' => title}
     
-	    #Make the request
-	normalized_result = make_request('query', post_me)    
-	    
-	return normalized_result.fetch('pages')
+  	#Make the request
+  	normalized_result = make_request('query', post_me)    
+
+  	return Result.new("TRUE", nil, normalized_result.get_result.fetch('pages'))
 	  
   end
   
   # Query - Redirects
-  # http://www.mediawiki.org/wiki/API:Query#Redirects_.28done.29
   #
   # This will return any redirects from an article title so that you know where it ends. Useful to check for redirects, but mostly here for completeness of the framework.
   #
@@ -118,11 +124,28 @@ class RWikiBot
     #Make the request
     redirects_result = make_request('query', post_me)
     
-    return redirects_result.fetch('pages')
+    Result.new( TRUE, nil, redirects_result.get_result.fetch('pages') )
   
   end
   
-  
+  # is_redirected?
+  #
+  # Tests to see if a given page title is redirected to another page. Very Ruby.
+  #
+  # INPUT:: A string page title
+  # OUTPUT:: bool T/F 
+  def is_redirected? (title)
+    
+    post_me = {'titles' => title, 'redirects'=>'', 'prop' => 'info'}
+
+    result = make_request('query', post_me)
+    
+    if (result.success?) && (result.get_result.has_key?("redirects"))
+      return Result.new(TRUE, nil, {"to" => result.get_result.fetch('redirects').fetch("r")['to'], "from" => result.get_result.fetch('redirects').fetch("r")['from'] })
+    else
+      return Result.new(FALSE, nil, nil)
+    end
+  end
   # Watchlist
   #
   # This method will get the watchlist for the bot's MediaWiki username. This is really onlu useful if you want the bot to watch a specific list of pages, and would require the bot maintainer to login to the wiki as the bot to set the watchlist. 
@@ -131,6 +154,7 @@ class RWikiBot
   #
   # OUTPUT:: Returns an array of hashes.
   def watchlist (options=nil)
+    
     # Get the bot's watchlist
     post_me = {'list'=>'watchlist'}
     
@@ -144,8 +168,11 @@ class RWikiBot
     watchlist_result = make_request('query', post_me)
     
     #Process into a Hash for return
-    puts watchlist_result
-    return watchlist_result.fetch('watchlist')
+    if watchlist_result.success?
+      return Result.new( TRUE, nil, watchlist_result.get_result.fetch('watchlist'))
+    else
+      return Result.new( FALSE, watchlist_result.get_message )
+    end
     
   end
   
@@ -223,36 +250,6 @@ class RWikiBot
     return redirects_result.has_key?('redirects')
     
   end
-  
-  # Meta
-  #
-  # This is the only meta method. It will return site information. I chose not to allow it to specify, and it will only return all known properties. 
-  # api.php?action=query&meta=siteinfo&siprop=general|namespaces
-  #
-  # INPUT:: siprop is either 'general' or 'namespaces'. 
-  #
-  # OUTPUT:: A hash of values about site information.
-  def site_info (siprop = 'general')
-    
-    ##@wikibotlogger.debug "SITE INFO - Preparing request information..."
-    
-    # Make the request
-    post_me = {"meta" => "siteinfo" , "siprop" => siprop}
-    
-    
-    #Make the request!
-    siteinfo_result = make_request('query', post_me)
-    
-    # Process results
-    
-    if siprop == 'general'
-      return siteinfo_result.fetch('general')
-    else
-      return siteinfo_result.fetch('namespaces')
-    end
-    
-  end
-  
   
   # List
   #
@@ -433,10 +430,32 @@ class RWikiBot
     # Process results
     
     if siprop == 'general'
-      return siteinfo_result.fetch('general')
+      return siteinfo_result.get_result.fetch('general')
     else
-      return siteinfo_result.fetch('namespaces')
+      return siteinfo_result.get_result.fetch('namespaces')
     end
+    
+  end
+  
+  # Meta
+  #
+  # Get information about the current user
+  #
+  # INPUT::  uiprop - What pieces of information to include
+  #
+  # OUTPUT:: A hash of values about the user.
+  def user_info (uiprop = nil)
+        
+    # Make the request
+    post_me = {"meta" => "userinfo" }
+    post_me['uiprop'] =  uiprop unless uiprop.nil?
+    
+    
+    #Make the request!
+    userinfo_result = make_request('query', post_me)
+    
+    # Process results
+    return userinfo_result.fetch('userinfo')
     
   end
   
@@ -466,8 +485,6 @@ class RWikiBot
         end
       end
     end
-    
-    puts "Deleted #{count} items."
     
     return array
   end
@@ -522,93 +539,207 @@ class RWikiBot
 
   end
   
+  # get_token
+  #
   # This method should universally return tokens, just give title and type. You will receive a token string (suitable for use in other methods), so plan accordingly.
   #
   # INPUT:: title, intoken (type - delete, rollback, etc)
   # OUTPUT:: A stringified token
   def get_token(title, intoken)
   
-	post_me = {'prop' => 'info', 'intoken' => intoken, 'title' => title}
+	  post_me = {
+	    'prop' => 'info', 
+	    'intoken' => intoken, 
+	    'titles' => title
+	  }
 	
-	raw_token = make_request('query', post_me)
-	puts raw_token
-	return raw_token.fetch('query')[0].fetch('#{intoken}token')
+	  raw_token = make_request('query', post_me)
+	
+	  return raw_token.fetch('pages').fetch('page').fetch("#{intoken}token")
   
   end
+  
+  # Edit - edit_page
+  #
+  # This method is used to edit pages. Not much more to say about it. Be sure you're logged in and got a token (get_token). Options is an array (or hash) of extra values allowed by the API. 
+  #
+  # INPUT:: title, token, content, summary, options
+  # OUTPUT:: title, id, revid, content
+  def edit_page(title, token, content, summary = "Change made by RWikiBot", options = nil)
+  
+	  post_me = {
+	    'eptext' => "#{content}" , 
+	    'eptokenid' => token , 
+	    'eptitle' => title , 
+      'eplgtoken' => @config['lgtoken'] ,
+	    'epsummary' => "#{summary}" ,
+	    'epedittime' => Time.now.strftime("%Y%m%d%H%M%S") ,
+	    'epuserid' => @config.fetch('lguserid') , 
+	  }
+	  
+	  if options.nil? == FALSE
+	    options.each do |key, value|
+	      post_me[key] = value
+	    end
+	  end
+	
+	  edit_result = make_request('edit', post_me)
+	  
+	  if edit_result.fetch('result') == "Success"
+	    return true
+	  else
+	    return false
+	  end
+ 
+  end
+  
+  # Edit - create_page
+  #
+  # Create page creates a page. It is seperate, however, from edit_page to handle the logic of checking if a page exists and exiting if so. Even though how it works is the same, seperation of concerns is better for end-users, and easier for newbies. 
+  #
+  # INPUT:: title, token, content, summary, options
+  # OUTPUT:: title, id, revid, content
+  def create_page(title, token, content, summary = "Page added by RWikiBot", options = nil)
+  
+	  post_me = {
+	    'eptext' => "#{content}" , 
+	    'eptokenid' => token , 
+	    'eptitle' => title , 
+      'eplgtoken' => @config['lgtoken'] ,
+	    'epsummary' => "#{summary}" ,
+	    'epedittime' => Time.now.strftime("%Y%m%d%H%M%S") ,
+	    'epuserid' => @config.fetch('lguserid') , 
+	  }
+	  
+	  if options.nil? == FALSE
+	    options.each do |key, value|
+	      post_me[key] = value
+	    end
+	  end
+	  
+	  if page_exists? title
+	    return false
+	  end
+	  
+	  edit_result = make_request('edit', post_me)
+	  
+	  if edit_result.fetch('result') == "Success"
+	    return true
+	  else
+	    return false
+	  end
+ 
+  end
+  
   
   # The following methods are private and should only be called internally. 
   #
   # So don't screw around in here. Its like a house of cards, people.
-  private 
+  # private 
   
   # Check Version is a private method that will be run at the start of every method to make sure the version of the API we're using is compliant with the method. It'll take a little work on my part, but it'll make developing against two different wikis easier. 
   def check_version (min)
-	if min > @config['api_version']
-		puts "The version of the API you are using does not support this method. Please upgrade your version of MediaWiki."
-		return false
-	else
-		return true
-	end
-end
+  	if min > @config['api_version']
+  		
+  		result = Result.new( FALSE, "The version of the API you are using does not support this method. Please upgrade your version of MediaWiki.", nil)
+  		return result
+  	else
+  	  result = Result.new( TRUE )
+  		return result
+  	end
+  end
   
   # Make Request is a method that actually handles making the request to the API. Since the API is somewhat standardized, this method is able to accept the action and a hash of variables, and it handles all the fun things MediaWiki likes to be weird over, like cookies and limits and actions. Its very solid, but I didn't want it public because it also does some post processing, and that's not very OO. 
   def make_request (action, post_this)
-     
-	 begin
-		#Housekeeping. We need to add format and action to the request hash
-		puts "======================"
-		puts post_this
-		
-		
-		post_this['format'] = 'xml'
-		post_this['action'] = action
-		
-		# Despite me coding this the way the API doc says, it doesn't work. Commenting out until clarity is returned. 
-		if @config.fetch('logged_in')
-		  post_this['lgusername'] = @config.fetch('lgusername')
-		  post_this['lgtoken'] = @config.fetch('lgtoken')
-		  post_this['lguserid'] = @config.fetch('lguserid')
-		 end
-	  
-		#change - preparing a POST string instead of hash. 
-		post_string = ''
-		post_this.each_pair do |key, value|
-		  post_string << "#{key}=#{value}&"
-		end
+    
+      #Housekeeping. We need to add format and action to the request hash
+      post_this['format'] = 'xml'
+      post_this['action'] = action
 
-		
-		#Send the actual request with exception handling
-		
-		if (@config['logged_in'])
-		  cookies = "#{@config['cookieprefix']}UserName=#{@config['lgusername']}; #{@config['cookieprefix']}UserID=#{@config['lguserid']}; #{@config['cookieprefix']}Token=#{@config['lgtoken']}"
-		else
-		  cookies = ""
-		end
-		
-		#puts post_string
-		headers =  {
-			'User-agent'=>'RWikiBot/1.1', 
-			'Cookie' => cookies
-		}
-		resp = @http.post( @config.fetch('uri').path , post_string ,  headers )
+      if (@config['logged_in'])
+        cookies = "#{@config['cookieprefix']}UserName=#{@config['lgusername']}; #{@config['cookieprefix']}UserID=#{@config['lguserid']}; #{@config['cookieprefix']}Token=#{@config['lgtoken']}; #{@config['cookieprefix']}_session=#{@config['_session']}"
+      else
+        cookies = ""
+      end
 
-		puts resp.body
-		puts "======================"
-		
-				
-		return_result = XmlSimple.xml_in(resp.body, { 'ForceArray' => false} )	
-		
-		if return_result.has_key? action
-		  return_result = return_result.fetch(action)
-		else
-		  raise MediaWikiException.new(return_result.fetch('error'))
-		end
-		
-		return return_result 
-	
-	rescue REXML::ParseException, MediaWikiException => error_text
-		puts "Error occured: " + error_text
-	end
+      headers =  {
+        'User-agent'=>'bot-RWikiBot/1.1', 
+        'Cookie' => cookies
+      }
+      
+      request = Net::HTTP::Post.new(@config.fetch('uri').path, headers)
+      request.set_form_data(post_this)
+      response = Net::HTTP.new(@config.fetch('uri').host, @config.fetch('uri').port).start {
+        |http| http.request(request)
+      }
+
+      # puts "-_-_-_"
+      #  puts response.body
+      return_result = XmlSimple.xml_in(response.body, { 'ForceArray' => false })	
+      
+      # Extra cookie handling. Because editing will be based on session IDs and it generates a new one each time until you start responding. I doubt this will change.
+      if (response.header['set-cookie'] != nil)
+        @config['_session'] = response.header['set-cookie'].split("=")[1]
+      end
+      
+      # Finish up
+      if return_result.has_key?("error")
+        return Result.new(
+          FALSE,                                      # Bool
+          return_result.fetch('error').fetch('info'), # Message
+          nil                                         # Objectg
+        )
+      else
+        return Result.new(
+          TRUE, 
+          nil , 
+          return_result.fetch(action) 
+        )
+      end
+      
   end
   
+end
+
+# Class Result
+#
+# @code       = FALSE     # TRUE/FALSE
+# @message    = ""        # Message about result (errors, other statements)
+# @result     = Hash.new  # MediaWiki's return result
+#
+# I'm going to try to standardize results to make programming these methods easier. That way, we can always have a success/failure indicator and a message, and the object of return.
+class Result  
+
+  def initialize (code, message = nil, result = nil)
+    @code     = code
+    @message  = message
+    @result   = result
+  end
+  
+  def success? 
+    return @code
+  end
+  
+  def get_result
+    @result
+  end
+  
+  def get_message
+    @message
+  end
+  
+  def to_s
+    "CODE: #{@code}\nMESSAGE: #{@message}\nRESULT: #{@result}"
+  end
+  
+end
+
+class Hash
+  def to_s
+    out = "{"
+    self.each do |key, value|
+      out += "#{key} => #{value},"
+    end
+    out += "}"
+  end
 end

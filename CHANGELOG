@@ -5,6 +5,8 @@ RWikiBot ChangeLog
 	- Disabled cookies from login since they're terrible and hard to maintain and bad long term practice and the API supports it (you're welcome)
 	- Striked the "name" field and "prefix" field from initialize. Those were antiquated anyway. 
 	- Reordered the methods to align with documentation
+	- Changed User-Agent to bot-RWikiBot/1.1
+	- Refined error handling (sorta)
 	
 
 1.0.10
