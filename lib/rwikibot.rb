@@ -1,26 +1,21 @@
-# RWikiBot 1.1
-# 
 # This is a framework upon which to create MediaWiki Bots. It provides a set of methods to acccess MediaWiki's API and return information in 
 # various forms, depending on the type of information returned. By abstracting these methods into a Bot object, cleaner script code can be
-# written later. Furthermore, it facilitates the updating of the API without breaking old bots. Last, but not least, its good to abstract. 
+# written later. Furthermore, it facilitates the updating of the API without breaking old bots. Last, but not least, its good to abstract. # 
 # 
-# 
-# Author:: Edwin Sidney Roger (mailto:eddieroger@gmail.com)
-# Copyright:: Copyright (c) 2007 Edwin Sidney Roger
+# Author:: Eddie Roger (mailto:eddieroger@gmail.com)
+# Copyright:: Copyright (c) 2008 Eddie Roger
 # License:: GNU/GPL 2.0
 require 'net/http'
 require 'uri'
 require 'cgi'
-# require 'exceptions'
-# require 'result'
 
 require 'rubygems'
 require 'xmlsimple'
 
 #This is the main bot object. The goal is to represent every API method in some form here, and then write seperate, cleaner scripts in individual bot files utilizing this framework. Basically, this is an include at best.
 class RWikiBot
-  
-  def initialize ( username = 'RWikiBot', password = 'testpassword', api_path = 'http://localhost:8888/api.php', domain = '')
+    
+  def initialize ( username = 'rwikibot', password = '', api_path = 'http://www.rwikibot.net/wiki/api.php', domain = '')
 
 
     @config = Hash.new
@@ -49,7 +44,7 @@ class RWikiBot
   # INPUT:: None
   # OUTPUT:: boolean
   def logged_in?
-    return Result.new(@config['logged_in'])
+    return @config['logged_in']
   end
 
   # Login
@@ -77,10 +72,11 @@ class RWikiBot
       @config['lgtoken'] 		    = login_result.get_result.fetch('lgtoken')
       @config['_session']       = login_result.get_result.fetch('sessionid')
 	    @config['cookieprefix'] 	= login_result.get_result.fetch('cookieprefix') 
-      return Result.new(TRUE, "You are now logged in as: #{@config['lgusername']}")
+      # puts "You are now logged in as: #{@config['lgusername']}"
+      return true
     else 
-    
-      return Result.new(FALSE, "Login failed")
+      # puts "Error logging in. Error was: "
+      return false
 	  
 	  end
     
@@ -100,7 +96,7 @@ class RWikiBot
   	#Make the request
   	normalized_result = make_request('query', post_me)    
 
-  	return Result.new("TRUE", nil, normalized_result.get_result.fetch('pages'))
+  	return normalized_result.get_result.fetch('pages')
 	  
   end
   
@@ -124,28 +120,29 @@ class RWikiBot
     #Make the request
     redirects_result = make_request('query', post_me)
     
-    Result.new( TRUE, nil, redirects_result.get_result.fetch('pages') )
+    return redirects_result.get_result.fetch('pages')
   
   end
   
-  # is_redirected?
+  # is_redirect?
   #
   # Tests to see if a given page title is redirected to another page. Very Ruby.
   #
   # INPUT:: A string page title
   # OUTPUT:: bool T/F 
-  def is_redirected? (title)
+  def is_redirect? (title)
     
     post_me = {'titles' => title, 'redirects'=>'', 'prop' => 'info'}
 
     result = make_request('query', post_me)
     
     if (result.success?) && (result.get_result.has_key?("redirects"))
-      return Result.new(TRUE, nil, {"to" => result.get_result.fetch('redirects').fetch("r")['to'], "from" => result.get_result.fetch('redirects').fetch("r")['from'] })
+      return true
     else
-      return Result.new(FALSE, nil, nil)
+      return false
     end
   end
+  
   # Watchlist
   #
   # This method will get the watchlist for the bot's MediaWiki username. This is really onlu useful if you want the bot to watch a specific list of pages, and would require the bot maintainer to login to the wiki as the bot to set the watchlist. 
@@ -169,9 +166,9 @@ class RWikiBot
     
     #Process into a Hash for return
     if watchlist_result.success?
-      return Result.new( TRUE, nil, watchlist_result.get_result.fetch('watchlist'))
+      return watchlist_result.get_result.fetch('watchlist')
     else
-      return Result.new( FALSE, watchlist_result.get_message )
+      return watchlist_result.get_message 
     end
     
   end
@@ -188,7 +185,7 @@ class RWikiBot
     # This will allow any given bot to get recent changes. Then act on it. But that's another method
     # TODO - Persistent timestamp storage
     
-    post_me = {"list" => "recentchanges"} #, 'rclimit' => '5000'}
+    post_me = {"list" => "recentchanges", 'rclimit' => '5000'}
     if options != nil
       options.each do |key, value|
         post_me[key] = value
@@ -199,7 +196,11 @@ class RWikiBot
     recentchanges_result = make_request('query' , post_me)
 
     # Done. Return the results
-    return recentchanges_result.fetch('recentchanges')
+    if recentchanges_result.success?
+      return recentchanges_result.get_result.fetch('recentchanges').fetch('rc')
+    else
+      return recentchanges_result.get_message
+    end
     
   end
   
@@ -226,29 +227,12 @@ class RWikiBot
     #Make the request!
     logevents_result = make_request('query', post_me)
     
-    # Process results    
-    return logevents_result.fetch('logevents')
-
-  end
-    
-  
-  # Query
-  #
-  # This is a lot like REDIRECTS method, except its just a true/false to validate whether or not an article is a redirect. We could write the logic into the final bot app, but we're awesome and we include a quicky method.
-  #
-  # INPUT:: Title (please, just one!)
-  # OUTPUT:: True/False
-  def redirect? (title)
-    
-    # Prepare the request
-    post_me = {'titles' => title, 'redirects'=>'', 'prop' => 'info'}
-    
-    
-    #Make the request
-    redirects_result = make_request('query', post_me)
-    
-    return redirects_result.has_key?('redirects')
-    
+    # Process results   
+    if logevents_result.success? 
+      return logevents_result.get_result.fetch('logevents')
+    else
+      return logevents_result.get_message
+    end
   end
   
   # List
@@ -276,7 +260,11 @@ class RWikiBot
     #make the request
     allpages_result = make_request('query', post_me)
     
-    return allpages_result.fetch('allpages')['p']
+    if allpages_result.success?
+      return allpages_result.get_result.fetch('allpages')['p']
+    else
+      return allpages_result.get_message
+    end
     
   end
 
@@ -301,8 +289,12 @@ class RWikiBot
     
     #make the request
     backlinks_result = make_request('query', post_me)
-    return backlinks_result.fetch('backlinks')
     
+    if backlinks_result.success?
+      return backlinks_result.get_result.fetch('backlinks')
+    else
+      return backlinks_result.get_message
+    end
   end
   
   # List
@@ -327,7 +319,12 @@ class RWikiBot
     
     #make the request
     embeddedin_result = make_request('query', post_me)
-    return embeddedin_result.fetch('embeddedin')
+    
+    if embeddedin_result.success?
+      return embeddedin_result.get_result.fetch('embeddedin')
+    else
+      return embeddedin_result.get_message
+    end
     
   end
   
@@ -353,7 +350,12 @@ class RWikiBot
    
      #make the request
      imageembeddedin_result = make_request('query', post_me)
-     return imageembeddedin_result.fetch('embeddedin')
+     
+     if imageembeddedin_result.success?
+       return imageembeddedin_result.get_result.fetch('embeddedin')
+     else
+       return imageembeddedin_result.get_message
+      end
    
    end
     
@@ -373,8 +375,12 @@ class RWikiBot
     # Make the request
     info_result = make_request('query', post_me)
     
-    # Result processing    
-    return info_result.fetch('pages')
+    # Result processing   
+    if info_result.success? 
+      return info_result.get_result.fetch('pages').fetch('page')
+    else
+      return info_result.get_message
+    end
   
   end
   
@@ -404,7 +410,46 @@ class RWikiBot
     revisions_result = make_request('query', post_me )
     
     #Process the results    
-    return revisions_result.fetch('pages')
+    if revisions_result.success?
+      return revisions_result.get_result.fetch('pages')
+    else
+      return revisions_result.get_message
+    end
+    
+  end
+  
+  # Prop - Revisions - Custom
+  #
+  # This will get only the content of the article. It is a modification of revisions to specifically pull the content. I thought it would be useful.
+  #
+  # INPUT :: An article title
+  # OUTPUT :: Content! IN STRING FORM! Please note that. If you want more than just a string of content, use revisions
+  def get_content(titles, options = nil)
+    
+    post_me = {'prop' => 'revisions', 'titles' => titles, 'rvprop' => 'content'}
+    
+    # Handle any additional options
+    if options != nil
+      options.each_pair do |key, value|
+        post_me[key] = value
+      end
+    end
+    
+    # Why waste a trip if the article doesn't exist?
+    # OK, it's still a trip, but error prevention is my name.
+    if page_exists?(titles) == false
+      return "Article \"#{titles}\" does not exist."
+    end
+    
+    # Make the request. Becuase we care.
+    revisions_result = make_request('query', post_me )
+    
+    #Process the results    
+    if revisions_result.success?
+      return revisions_result.get_result.fetch('pages').fetch('page').fetch('revisions').fetch('rev')
+    else
+      return revisions_result.get_message
+    end
     
   end
   
@@ -455,7 +500,11 @@ class RWikiBot
     userinfo_result = make_request('query', post_me)
     
     # Process results
-    return userinfo_result.fetch('userinfo')
+    if userinfo_result.success?
+      return userinfo_result.get_result.fetch('userinfo')
+    else
+      return userinfo_result.get_message
+    end
     
   end
   
@@ -498,16 +547,24 @@ class RWikiBot
   def page_exists? (title)
     
     # Prepare the request
-    ##@wikibotlogger.debug "PAGE EXISTS? - Preparing request information..."
     post_me = {'titles' => title}
     
     #Make the request
     page_exists_result = make_request('query', post_me)
     
-    if page_exists_result.fetch('pages')[0].has_key?('missing')
-      return false
+    if page_exists_result.success?
+      # if page_exists_result.get_result.fetch('pages')[0].has_key?('missing')
+      #   return false
+      # else
+      #   return true
+      # end
+      if page_exists_result.get_result.fetch('pages').fetch('page').has_key?('missing')
+        return false
+      else
+        return true
+      end
     else
-      return true
+      return page_exists_result.get_message
     end
     
   end
@@ -535,46 +592,35 @@ class RWikiBot
       id_result = make_request('query', post_me )
 
       #Process the results
-      return id_result.fetch('pages')[0].fetch('title')
+      if id_result.success?
+        return id_result.get_result.fetch('pages').fetch('page').fetch('title')
+      else
+        return id_result.get_message
+      end
 
   end
   
-  # get_token
-  #
-  # This method should universally return tokens, just give title and type. You will receive a token string (suitable for use in other methods), so plan accordingly.
-  #
-  # INPUT:: title, intoken (type - delete, rollback, etc)
-  # OUTPUT:: A stringified token
-  def get_token(title, intoken)
-  
-	  post_me = {
-	    'prop' => 'info', 
-	    'intoken' => intoken, 
-	    'titles' => title
-	  }
-	
-	  raw_token = make_request('query', post_me)
-	
-	  return raw_token.fetch('pages').fetch('page').fetch("#{intoken}token")
-  
-  end
-  
-  # Edit - edit_page
-  #
   # This method is used to edit pages. Not much more to say about it. Be sure you're logged in and got a token (get_token). Options is an array (or hash) of extra values allowed by the API. 
   #
+  # Aliased by create_page
+  #
   # INPUT:: title, token, content, summary, options
-  # OUTPUT:: title, id, revid, content
-  def edit_page(title, token, content, summary = "Change made by RWikiBot", options = nil)
+  # OUTPUT:: Boolean (T/F) on success or error message if save attempt fails
+  def edit_page(title, content, summary = nil, options = nil)
   
+    # this is necessary since create_page can pass nil, and if the user enters options, they can enter nil as well. 
+    if summary.nil?
+      summary = "Change made by [[User:Rwikibot|RWikiBot]]"
+    end
+      
 	  post_me = {
-	    'eptext' => "#{content}" , 
-	    'eptokenid' => token , 
-	    'eptitle' => title , 
-      'eplgtoken' => @config['lgtoken'] ,
-	    'epsummary' => "#{summary}" ,
-	    'epedittime' => Time.now.strftime("%Y%m%d%H%M%S") ,
-	    'epuserid' => @config.fetch('lguserid') , 
+	    'text' => "#{content}" , 
+	    'token' => get_token(title, "edit") , 
+	    'title' => "#{title}" , 
+      'lgtoken' => @config['lgtoken'] ,
+	    'summary' => "#{summary}" ,
+	    'edittime' => Time.now.strftime("%Y%m%d%H%M%S") ,
+	    'userid' => @config.fetch('lguserid') , 
 	  }
 	  
 	  if options.nil? == FALSE
@@ -582,70 +628,177 @@ class RWikiBot
 	      post_me[key] = value
 	    end
 	  end
-	
 	  edit_result = make_request('edit', post_me)
-	  
-	  if edit_result.fetch('result') == "Success"
-	    return true
-	  else
-	    return false
-	  end
- 
+	  if edit_result.success?
+      if edit_result.get_result.fetch('result') == "Success"
+        return true
+      else
+        return false
+      end
+    else
+      return edit_result.get_message
+    end
   end
   
-  # Edit - create_page
+  # This method is a wrapper for edit page. The functionality is the same, but semanticly they are different, in that you create new pages but edit existing ones. So, ease of use. Use edit - that's the better function.
   #
-  # Create page creates a page. It is seperate, however, from edit_page to handle the logic of checking if a page exists and exiting if so. Even though how it works is the same, seperation of concerns is better for end-users, and easier for newbies. 
-  #
-  # INPUT:: title, token, content, summary, options
-  # OUTPUT:: title, id, revid, content
-  def create_page(title, token, content, summary = "Page added by RWikiBot", options = nil)
+  # For documentation, see edit_page
+  def create_page(title, content, summary = nil, options = nil)
+    edit_page(title, content, summary, options)
+  end
   
-	  post_me = {
-	    'eptext' => "#{content}" , 
-	    'eptokenid' => token , 
-	    'eptitle' => title , 
-      'eplgtoken' => @config['lgtoken'] ,
-	    'epsummary' => "#{summary}" ,
-	    'epedittime' => Time.now.strftime("%Y%m%d%H%M%S") ,
-	    'epuserid' => @config.fetch('lguserid') , 
+  # This method will let you move a page from one name to another. A move token is required for this to work. Keep that in mind. (get_token much?)
+  #
+  # http://www.mediawiki.org/wiki/API:Edit_-_Move
+  #
+  # INPUT:: from, to, token, reason, movetalk (T/F), noredirect (T/F)
+  # OUTPUT:: Boolean (T/F) on success or error message
+  def move_page(from, to, reason = "Moved by [[User:Rwikibot|RWikiBot]]", movetalk = true, noredirect = false)
+    
+    # it's an extra call, but I'd rather catch an error early. besides, bandwidth isn't cheap.
+    if page_exists?(from) == false
+      return "Move failed. Article \"#{from}\" doesn't exist."
+    end
+    
+    if reason == nil
+      reason = "Moved by RWikiBot"
+    end
+    
+    post_me = {
+	    'from'    => "#{from}" , 
+	    'to'      => "#{to}" ,
+	    'token'   => get_token(from, 'move') , 
+	    'reason'  => "#{reason}" , 
 	  }
 	  
-	  if options.nil? == FALSE
-	    options.each do |key, value|
-	      post_me[key] = value
-	    end
+	  # These ifs are necessary because they should only be part of post_me if the passed vars are true (which they are by default)
+	  if movetalk
+	    post_me['movetalk'] = ''
+	  end
+	  if noredirect
+	    post_me['noredirect'] = ''
 	  end
 	  
-	  if page_exists? title
-	    return false
-	  end
-	  
-	  edit_result = make_request('edit', post_me)
-	  
-	  if edit_result.fetch('result') == "Success"
-	    return true
-	  else
-	    return false
-	  end
- 
+	  move_result = make_request('move', post_me)
+	  if move_result.success?
+      return move_result.get_result
+    else
+      return move_result.get_message
+    end
   end
   
+  # Rollback does what it says - rolls back an article one version in the wiki. This is a function that requires not only a token, but a previous user. 
+  # Please note that you can only rollback one version. This is the same functionality as available through the web interface and was intentionally implemented this way in the API.
+  # http://www.mediawiki.org/wiki/API:Edit_-_Rollback
+  #
+  # INPUT:: title, summary, markbot (T/F) (token and last user handled by method)
+  # OUTPUT:: Hash of MW result
+  def rollback_page (title, summary="Rolled back by RWikiBot}", markbot=false)
+    
+    if page_exists?(title) == false
+      return "Rollback failed. Article \"#{title}\" doesn't exist."
+    end
+    
+    temp_token = get_token(title,"rollback")
+    
+    post_me = {
+      'title'     => title,
+      'token'     => temp_token['token'],
+      'user'      => temp_token['user'],
+      'summary'   => summary
+    }
+    
+    if markbot
+      post_me['markbot'] = ''
+    end
+    
+    rollback_result = make_request('rollback', post_me)
+    
+    if rollback_result.success?
+      return rollback_result.get_result
+    else
+      return rollback_result.get_message
+    end
+    
+  end
+  
+  # If you have to ask what this method does, don't use it. Seriously, use with caution - this method does not have a confirmation step, and deleted (while restorable) are immediate.
+  #
+  # INPUT:: title, reason
+  # OUTPUT:: title and reason or error message
+  def delete_page(title, reason="Deleted by RWikiBot")
+    
+    if page_exists?(title) == FALSE
+      return "Article \"#{title}\" does not exist. Delete failed. "
+    end
+    
+    post_me = {
+      'title'     => title ,
+      'token'     => get_token(title,'delete') ,
+      'reason'    => reason
+    }
+    
+    delete_result = make_request('delete',post_me)
+    
+    if delete_result.success?
+      return delete_result.get_result
+    else
+      return delete_result.get_message
+    end
+    
+  end
   
   # The following methods are private and should only be called internally. 
-  #
   # So don't screw around in here. Its like a house of cards, people.
-  # private 
+  private 
+  
+  # This method should universally return tokens, just give title and type. You will receive a token string (suitable for use in other methods), so plan accordingly.
+  #
+  # Use an edit token for both editing and creating articles (edit_article, create_article). For rollback, more than just a token is required. So, for token=rollback, you get a hash of token|user. Just the way it goes.
+  #
+  # INPUT:: title, (edit|move|rollback)
+  # OUTPUT:: A stringified token (for rollback - a hash of token,user)
+  def get_token(title, intoken)
+    if intoken.downcase == 'rollback'
+      #specific to rollback
+      post_me = {
+        'prop'    => 'revisions' ,
+        'rvtoken' => intoken ,
+        'titles'  => title
+      }
+    else
+  	  post_me = {
+  	    'prop'    => 'info', 
+  	    'intoken' => intoken, 
+  	    'titles'  => title
+  	  }
+	  end
+	  raw_token = make_request('query', post_me)
+	  if intoken.downcase == 'rollback'
+      # Damn this decision to make rollback special!. Wasn't mine, I just haev to live by it.
+      if raw_token.success?
+        token2 = raw_token.get_result.fetch('pages').fetch('page').fetch('revisions').fetch('rev')
+        return {'token' => token2.fetch('rollbacktoken') , 'user' => token2.fetch('user')}
+      else
+        return raw_token.get_message
+      end
+  	else
+  	  if raw_token.success?
+  	    return raw_token.get_result.fetch('pages').fetch('page').fetch("#{intoken}token")
+  	  else
+  	    return raw_token.get_message
+  	  end
+  	end
+  end
   
   # Check Version is a private method that will be run at the start of every method to make sure the version of the API we're using is compliant with the method. It'll take a little work on my part, but it'll make developing against two different wikis easier. 
   def check_version (min)
   	if min > @config['api_version']
   		
-  		result = Result.new( FALSE, "The version of the API you are using does not support this method. Please upgrade your version of MediaWiki.", nil)
-  		return result
+  		puts "The version of the API you are using does not support this method. Please upgrade your version of MediaWiki."
+  		return false
   	else
-  	  result = Result.new( TRUE )
-  		return result
+  		return true
   	end
   end
   
@@ -667,14 +820,13 @@ class RWikiBot
         'Cookie' => cookies
       }
       
+
       request = Net::HTTP::Post.new(@config.fetch('uri').path, headers)
       request.set_form_data(post_this)
       response = Net::HTTP.new(@config.fetch('uri').host, @config.fetch('uri').port).start {
         |http| http.request(request)
       }
 
-      # puts "-_-_-_"
-      #  puts response.body
       return_result = XmlSimple.xml_in(response.body, { 'ForceArray' => false })	
       
       # Extra cookie handling. Because editing will be based on session IDs and it generates a new one each time until you start responding. I doubt this will change.
@@ -740,6 +892,7 @@ class Hash
     self.each do |key, value|
       out += "#{key} => #{value},"
     end
+    out = out.chop
     out += "}"
   end
 end
