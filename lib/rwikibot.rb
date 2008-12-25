@@ -8,13 +8,14 @@
 require 'net/http'
 require 'uri'
 require 'cgi'
+require 'errors'
 
 require 'rubygems'
 require 'xmlsimple'
 
 #This is the main bot object. The goal is to represent every API method in some form here, and then write seperate, cleaner scripts in individual bot files utilizing this framework. Basically, this is an include at best.
 class RWikiBot
-    
+
   def initialize ( username = 'rwikibot', password = '', api_path = 'http://www.rwikibot.net/wiki/api.php', domain = '')
 
 
@@ -29,9 +30,6 @@ class RWikiBot
     @config['logged_in'] = FALSE
     @config['uri'] = URI.parse(@config.fetch('api_path'))
     
-    # Commented out as a result of new method of posting in make_request
-    # @http = Net::HTTP.new(@config.fetch('uri').host, @config.fetch('uri').port)
-	
 	  # This has to be last methinks
 	  @config['api_version'] = version.to_f
 
@@ -53,6 +51,7 @@ class RWikiBot
   #
   # No variables are accepted. Returns a Result object of true or false
   def login
+    require("login",0,0)
     
     post_me = {'lgname'=>@config.fetch('username'),'lgpassword'=>@config.fetch('password')}
     if @config.has_key?('domain') && (@config.fetch('domain') != nil)
@@ -64,19 +63,19 @@ class RWikiBot
     
     # Now we need to changed some @config stuff, specifically that we're logged in and the variables of that
     # This will also change the make_request, but I'll comment there
-    if login_result.success?
+    if login_result['result'] == "Success"
       # All lg variables are directly from API and stored in config that way
       @config['logged_in'] 		  = TRUE
-      @config['lgusername'] 	  = login_result.get_result.fetch('lgusername')
-      @config['lguserid'] 		  = login_result.get_result.fetch('lguserid')
-      @config['lgtoken'] 		    = login_result.get_result.fetch('lgtoken')
-      @config['_session']       = login_result.get_result.fetch('sessionid')
-	    @config['cookieprefix'] 	= login_result.get_result.fetch('cookieprefix') 
+      @config['lgusername'] 	  = login_result.fetch('lgusername')
+      @config['lguserid'] 		  = login_result.fetch('lguserid')
+      @config['lgtoken'] 		    = login_result.fetch('lgtoken')
+      @config['_session']       = login_result.fetch('sessionid')
+	    @config['cookieprefix'] 	= login_result.fetch('cookieprefix') 
       # puts "You are now logged in as: #{@config['lgusername']}"
       return true
     else 
       # puts "Error logging in. Error was: "
-      return false
+      raise LoginError, "#{login_result['result']}: #{login_result['details']}"
 	  
 	  end
     
@@ -475,9 +474,9 @@ class RWikiBot
     # Process results
     
     if siprop == 'general'
-      return siteinfo_result.get_result.fetch('general')
+      return siteinfo_result.fetch('general')
     else
-      return siteinfo_result.get_result.fetch('namespaces')
+      return siteinfo_result.fetch('namespaces')
     end
     
   end
@@ -752,6 +751,20 @@ class RWikiBot
   # So don't screw around in here. Its like a house of cards, people.
   private 
   
+  # Require
+  #
+  # This allows us to ensure that the version of the API supports the method we're about ot run. Good call, buddy. 
+  #
+  # INPUT:: major, minor
+  # OUTPUT:: Well, none, but it raises an error if not. 
+  def require(method, major, minor)
+    maj, min = @config['api_version'].to_s.gsub(/[^0-9\.|\s]/,'').split(".")
+    if (major.to_i > maj.to_i) || (minor.to_i > min.to_i)
+      raise VersionTooLowError, "The version of the API you are using doesn't support #{method}"
+    end
+    true
+  end
+  
   # This method should universally return tokens, just give title and type. You will receive a token string (suitable for use in other methods), so plan accordingly.
   #
   # Use an edit token for both editing and creating articles (edit_article, create_article). For rollback, more than just a token is required. So, for token=rollback, you get a hash of token|user. Just the way it goes.
@@ -828,6 +841,7 @@ class RWikiBot
       }
 
       return_result = XmlSimple.xml_in(response.body, { 'ForceArray' => false })	
+      puts return_result
       
       # Extra cookie handling. Because editing will be based on session IDs and it generates a new one each time until you start responding. I doubt this will change.
       if (response.header['set-cookie'] != nil)
@@ -835,20 +849,7 @@ class RWikiBot
       end
       
       # Finish up
-      if return_result.has_key?("error")
-        return Result.new(
-          FALSE,                                      # Bool
-          return_result.fetch('error').fetch('info'), # Message
-          nil                                         # Objectg
-        )
-      else
-        return Result.new(
-          TRUE, 
-          nil , 
-          return_result.fetch(action) 
-        )
-      end
-      
+        return_result.fetch(action) 
   end
   
 end
