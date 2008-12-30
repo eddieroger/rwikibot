@@ -1,3 +1,17 @@
-This is RWikiBot 2.0-rc1
+This is RWikiBot 2.0
 
-I am not a git project, because as they say, it's the new hotness.
+For the most up-to-date information on RWikiBot, how to use it, and why it's amazing, please visit:
+http://www.rwikibot.net
+
+New in 2.0 (highlights)
+	- It's smart enough now to handle query-continues! As such, there's a new dependency - deep_merge. Get it - it's in gem. 
+	- Made a Page class. now, instead of bot.delete_page(title...), you do page.delete
+	- Got rid of the stupid Result class. That was a terrible decision. 
+	- edit_page is now save. Part of the Page/class concept
+	- Changed user-agent to bot/RWikiBot/2.0
+	
+For more, see the the CHANGELOG.
+
+Author:: Eddie Roger (mailto:eddieroger@nospam@gmail.com) http://www.eddieroger.com
+Copyright:: Copyright (c) 2008 Eddie Roger
+License:: GNU/GPL 2.0

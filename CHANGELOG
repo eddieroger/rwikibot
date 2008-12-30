@@ -1,5 +1,21 @@
 RWikiBot ChangeLog   
 
+2.0 ** BREAKING RELEASE** - this will break pretty all 1.X bots. 
+	- It's smart enough now to handle query-continues! As such, there's a new dependency - deep_merge. Get it - it's in gem. 
+	- Made a Page class. now, instead of bot.delete_page(title...), you do page.delete
+	- Got rid of the stupid Result class. That was a terrible decision. 
+	- edit_page is now save. Part of the Page/class concept
+	- Changed user-agent to bot/RWikiBot/2.0
+	- page_exists has been replaced with the page attribute "missing" - this aligns with MW's behavior
+	- Removed redirects since it doesn't matter anymore now that the API is solidified
+	- Removed image_embdedded_in since it's defunct
+	- Removed revisions due to limited functionality
+	- Removed pageid_to_title because the API is smart enough to not require conversion
+	- Made the utilities all private because utilities don't need to be public
+	- Shortened up the code considerably by retuning make_request when I can
+	- Moved make_request and it's new friend raw_call to utilities because they are.
+	- Removed normalize since I can get the "missing" attribute when creating a page, and that's good 'nuff
+
 1.2 
 	- Added edit functionality to complete the API
 	- Played catchup with a whole lot of methods

@@ -13,8 +13,8 @@ RUBY_FORGE_USER    = 'eddieroger'
 
 spec = Gem::Specification.new do |s|
 	s.platform = Gem::Platform::RUBY
-	s.name = "rwikibot"
-	s.version = "2.0"
+	s.name = PKG_NAME
+	s.version = PKG_VERSION
 	s.author = "Eddie Roger"
 	s.email = "eddieroger @nospam@ gmail.com"
 	s.summary = "A library for creating MediaWiki bots."
