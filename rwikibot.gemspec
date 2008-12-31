@@ -1,18 +1,35 @@
-spec = Gem::Specification.new do |s|
-	s.platform = Gem::Platform::RUBY
-	s.name = PKG_NAME
-	s.version = PKG_VERSION
-	s.author = "Eddie Roger"
-	s.email = "eddieroger @nospam@ gmail.com"
-	s.summary = "A library for creating MediaWiki bots."
-	s.homepage = "http://www.rwikibot.net"
-	s.rubyforge_project = 'RWikiBot'
-	s.files = FileList['lib/*.rb', 'test/*'].to_a
-	s.require_path = "lib"
-  s.test_files = Dir.glob('tests/*.rb')
-	s.has_rdoc = 'true'
-	s.rdoc_options = ['--inline-source --force-update']
-	s.extra_rdoc_files = ["README", "CHANGELOG"]
-	s.add_dependency('deep_merge',["> 0.0.0"])
-	s.add_dependency('xml-simple',["> 0.0.0"])
+Gem::Specification.new do |s|
+  s.name = %q{rwikibot}
+  s.version = "2.0.0"
+ 
+  s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
+  s.authors = ["RailsJedi", "Rick Olson"]
+  s.date = %q{2008-12-30}
+  s.description = %q{A Ruby framework for creating MediaWiki robots.}
+  s.email = %q{eddieroger@gmail.com}
+  s.extra_rdoc_files = ["README.textile"]
+  s.files = ['lib/*.rb', 'test/*']
+  s.files = ["CHANGELOG", "README.textile", "Rakefile", "lib/rwikibot.rb","lib/pages.rb","lib/errors.rb", "lib/utilities.rb"]
+  s.has_rdoc = true
+  s.homepage = %q{http://rwikibot.net/wiki}
+  s.rdoc_options = ["--main --inline-source --force-update", "README.textile"]
+  s.require_paths = ["lib"]
+  s.rubygems_version = %q{1.3.0}
+  s.summary = %q{Creates an abstraction layer between MediaWiki API and Ruby.}
+ 
+  if s.respond_to? :specification_version then
+    current_version = Gem::Specification::CURRENT_SPECIFICATION_VERSION
+    s.specification_version = 2
+ 
+    if Gem::Version.new(Gem::RubyGemsVersion) >= Gem::Version.new('1.2.0') then
+      s.add_runtime_dependency(%q<deep_merge>, ["~> 0.0.0"])
+      s.add_runtime_dependency(%q<xml-simple>, ["~> 0.0.0"])
+    else
+      s.add_dependency(%q<deep_merge>, ["~> 0.0.0"])
+      s.add_dependenct(%q<xml-simple>, ["~> 0.0.0"])
+    end
+  else
+    s.add_dependency(%q<deep_merge>, ["~> 0.0.0"])
+    s.add_dependenct(%q<xml-simple>, ["~> 0.0.0"])
+  end
 end
