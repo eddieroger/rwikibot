@@ -112,7 +112,7 @@ module RWBUtilities
       raise RWikiBotError, "#{return_result.fetch('error').fetch('code').capitalize}: #{return_result.fetch('error').fetch('info')}"
     end
 
-    if return_result.has_key?('query-continue')
+    if !post_this.keys.any?{|k| k.include?('limit')} && return_result.has_key?('query-continue')
       return_result.fetch('query-continue').each do |key, value|
         return_result.fetch('query-continue').fetch(key).each do |x,y|
           post_this[x] = y
