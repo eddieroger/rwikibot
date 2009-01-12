@@ -1,6 +1,9 @@
-# This is a framework upon which to create MediaWiki Bots. It provides a set of methods to acccess MediaWiki's API and return information in
-# various forms, depending on the type of information returned. By abstracting these methods into a Bot object, cleaner script code can be
-# written later. Furthermore, it facilitates the updating of the API without breaking old bots. Last, but not least, its good to abstract. #
+# This is a framework upon which to create MediaWiki Bots. It provides a set
+# of methods to acccess MediaWiki's API and return information in various
+# forms, depending on the type of information returned. By abstracting these
+# methods into a Bot object, cleaner script code can be written later.
+# Furthermore, it facilitates the updating of the API without breaking old
+# bots. Last, but not least, its good to abstract. #
 #
 # Author:: Eddie Roger (mailto:eddieroger@gmail.com)
 # Copyright:: Copyright (c) 2008 Eddie Roger
@@ -20,37 +23,40 @@ require 'pages'
 require 'xmlsimple'
 require 'deep_merge' # New in 2.0!
 
-#This is the main bot object. The goal is to represent every API method in some form here, and then write seperate, cleaner scripts in individual bot files utilizing this framework. Basically, this is an include at best.
+#This is the main bot object. The goal is to represent every API method in
+#some form here, and then write seperate, cleaner scripts in individual bot
+#files utilizing this framework. Basically, this is an include at best.
 class RWikiBot
 
   include RWBErrors
   include RWBUtilities
   include Pages
-  
+
   attr_reader :config
 
-  def initialize ( username = 'rwikibot', password = '', api_path = 'http://www.rwikibot.net/wiki/api.php', domain = '', login=false)
+  def initialize(username='rwikibot', password='', api_path='http://www.rwikibot.net/wiki/api.php', domain='', login=false)
     @config = Hash.new
 
-    # This had to come back since I was having config loading issues when being called from MediaWiki
-    @config['username'] = username
-    @config['password'] = password
-    @config['api_path'] = api_path
-    @config['domain']   = domain
-    @config['cookies']	= ""
-    @config['logged_in'] = FALSE
-    @config['uri'] = URI.parse(@config.fetch('api_path'))
+    @config = {
+    'username'  => username,
+    'password'  => password,
+    'api_path'  => api_path,
+    'domain'    => domain,
+    'cookies'   => "",
+    'logged_in' => false,
+    'uri'       => URI.parse(@config.fetch('api_path'))
+    }
 
-    # This has to be last methinks
     @config['api_version'] = version.to_f
 
     if login
       login
     end
-
   end
 
-  # This is the method that will allow the bot to log in to the wiki. Its not always necessary, but bots need to log in to save changes or retrieve watchlists.
+  # This is the method that will allow the bot to log in to the wiki. Its not
+  # always necessary, but bots need to log in to save changes or retrieve
+  # watchlists.
   def login
     # raise VersionTooLowError unless meets_version_requirement(0,0)
 
@@ -59,130 +65,100 @@ class RWikiBot
       post_me['lgdomain'] = @config.fetch('domain')
     end
 
-    #Calling make_request to actually log in
     login_result = make_request('login', post_me)
 
-    # Now we need to changed some @config stuff, specifically that we're logged in and the variables of that
-    # This will also change the make_request, but I'll comment there
+    # Now we need to changed some @config stuff, specifically that we're
+    # logged in and the variables of that This will also change the
+    # make_request, but I'll comment there
     if login_result['result'] == "Success"
       # All lg variables are directly from API and stored in config that way
-      @config['logged_in'] 		  = TRUE
-      @config['lgusername'] 	  = login_result.fetch('lgusername')
-      @config['lguserid'] 		  = login_result.fetch('lguserid')
-      @config['lgtoken'] 		    = login_result.fetch('lgtoken')
-      @config['_session']       = login_result.fetch('sessionid')
-      @config['cookieprefix'] 	= login_result.fetch('cookieprefix')
-      # puts "You are now logged in as: #{@config['lgusername']}"
-      return true
+      @config['logged_in']    = true
+      @config['lgusername']   = login_result.fetch('lgusername')
+      @config['lguserid']     = login_result.fetch('lguserid')
+      @config['lgtoken']      = login_result.fetch('lgtoken')
+      @config['_session']     = login_result.fetch('sessionid')
+      @config['cookieprefix'] = login_result.fetch('cookieprefix')
+
+      true
     else
       # puts "Error logging in. Error was: "
       raise LoginError, "#{login_result['result']}: #{login_result['details']}"
-
-    end #if
-  end
-
-  # Use Page to create a new page object that you can then manipulate. You could create a page on it's own, but if you do, be _sure_ to pass your bot along with the title, otherwise you won't get access to the super-fun make_request object that is pretty much required.
-  def Page(title='')
-    return Page.new(self, title)
-  end
-
-  # This will return a list of all pages in a given namespace. It returns a list of pages in with the normalized title and page ID, suitable for usage elsewhere. Accepts all parameters from the API in Hash form.
-  # Default is namespace => 0, which is just plain pages. Nothing 'special'.
-  def all_pages (options = nil)
-    # raise VersionTooLowError unless meets_version_requirement(1,9)
-    # This will get all pages. Limits vary based on user rights of the Bot. Set to bot.
-    ##@wikibotlogger.debug "ALL PAGES - Preparing request information..."
-    post_me = {'list' => 'allpages', 'apnamespace' => '0', 'aplimit' => '5000'}
-
-
-    if options != nil
-      options.each_pair do |key, value|
-        post_me[key] = value
-      end
     end
+  end
 
-    #make the request
+  # Use Page to create a new page object that you can then manipulate. You
+  # could create a page on it's own, but if you do, be _sure_ to pass your bot
+  # along with the title, otherwise you won't get access to the super-fun
+  # make_request object that is pretty much required.
+  def page(title='')
+    Page.new(self, title)
+  end
+
+  # This will return a list of all pages in a given namespace. It returns a
+  # list of pages in with the normalized title and page ID, suitable for usage
+  # elsewhere. Accepts all parameters from the API in Hash form. Default is
+  # namespace => 0, which is just plain pages. Nothing 'special'.
+  def all_pages(options = nil)
+    # raise VersionTooLowError unless meets_version_requirement(1,9) 
+    # This will get all pages. Limits vary based on user rights of the Bot. Set to bot.
+    post_me = {'list' => 'allpages', 'apnamespace' => '0', 'aplimit' => '5000'}
+    post_me.merge!(options) if options
     allpages_result = make_request('query', post_me)
     allpages_result.fetch('allpages')['p']
   end
 
-  # This method will get the watchlist for the bot's MediaWiki username. This is really onlu useful if you want the bot to watch a specific list of pages, and would require the bot maintainer to login to the wiki as the bot to set the watchlist.
-  def watchlist (options=nil)
+  # This method will get the watchlist for the bot's MediaWiki username. This
+  # is really onlu useful if you want the bot to watch a specific list of
+  # pages, and would require the bot maintainer to login to the wiki as the
+  # bot to set the watchlist.
+  def watchlist(options=nil)
     # raise VersionTooLowError unless meets_version_requirement(1,10)
     raise NotLoggedInError unless logged_in?
-
-    # Get the bot's watchlist
     post_me = {'list'=>'watchlist'}
-
-    if options != nil
-      options.each do |key, value|
-        post_me[key] = value
-      end
-    end
-
-    # Make the request
-    return make_request('query', post_me).fetch('watchlist').fetch('item')
+    post_me.merge!(options) if options
+    make_request('query', post_me).fetch('watchlist').fetch('item')
   end
 
   # This method will return Wiki-wide recent changes, almost as if looking at the Special page Recent Changes. But, in this format, a bot can handle it. Also we're using the API. And bots can't read.
-  def recent_changes (options=nil)
+  def recent_changes(options=nil)
     # raise VersionTooLowError unless meets_version_requirement(1,10)
-
     post_me = {"list" => "recentchanges", 'rclimit' => '5000'}
-    if options != nil
-      options.each do |key, value|
-        post_me[key] = value
-      end
-    end
-
-    # Make the request
-    return make_request('query' , post_me).fetch('recentchanges').fetch('rc')
+    post_me.merge!(options) if options
+    make_request('query' , post_me).fetch('recentchanges').fetch('rc')
   end
 
-  # This will reutrn a list of the most recent log events. Useful for bots who want to validate log events, or even just a notify bot that checks for events and sends them off.
-  def log_events (options = nil)
+  # This will reutrn a list of the most recent log events. Useful for bots who
+  # want to validate log events, or even just a notify bot that checks for
+  # events and sends them off.
+  def log_events(options=nil)
     # raise VersionTooLowError unless meets_version_requirement(1,11)
     post_me = {"list" => "logevents"}
-
-    if options != nil
-      options.each_pair do |key, value|
-        post_me[key] = value
-      end
-    end
-
-    #Make the request!
-    return make_request('query', post_me).fetch('logevents').fetch('item')
+    post_me.merge!(options) if options
+    make_request('query', post_me).fetch('logevents').fetch('item')
   end
 
-  # This is the only meta method. It will return site information. I chose not to allow it to specify, and it will only return all known properties.
-  def site_info (siprop = 'general')
+  # This is the only meta method. It will return site information. I chose not
+  # to allow it to specify, and it will only return all known properties.
+  def site_info(siprop='general')
     # raise VersionTooLowError unless meets_version_requirement(1,9)
-    # Make the request
     post_me = {"meta" => "siteinfo" , "siprop" => siprop}
-
-    #Make the request!
     siteinfo_result = make_request('query', post_me)
-
-    if siprop == 'general'
-      return siteinfo_result.fetch('general')
-    else
-      return siteinfo_result.fetch('namespaces').fetch('ns')
-    end
+    siprop == 'general' ?
+      siteinfo_result.fetch('general') :
+      siteinfo_result.fetch('namespaces').fetch('ns')
   end
 
   # Get information about the current user
-  def user_info (uiprop = nil)
+  def user_info(uiprop=nil)
     # raise VersionTooLowError unless meets_version_requirement(1,11)
-    # Make the request
     post_me = {"meta" => "userinfo" }
     post_me['uiprop'] =  uiprop unless uiprop.nil?
 
-    return make_request('query',post_me).fetch('userinfo')
+    make_request('query',post_me).fetch('userinfo')
   end
-
 end
 
-# I'm never happy with good enough, and when it comes to my hashes, I like to see the members of it. So I changed the hash to_s. Overriding method makes me happy. 
+# I'm never happy with good enough, and when it comes to my hashes, I like to see the members of it. So I changed the hash to_s. Overriding method makes me happy.  
 class Hash
   def to_s
     out = "{"

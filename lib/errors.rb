@@ -7,8 +7,8 @@ module RWBErrors
 
   class VersionTooLowError < StandardError
   end
-  
+
   class NotLoggedInError < StandardError
   end
-  
+
 end
