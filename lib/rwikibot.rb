@@ -38,13 +38,13 @@ class RWikiBot
     @config = Hash.new
 
     @config = {
-    'username'  => username,
-    'password'  => password,
-    'api_path'  => api_path,
-    'domain'    => domain,
-    'cookies'   => "",
-    'logged_in' => false,
-    'uri'       => URI.parse(@config.fetch('api_path'))
+     'username'  => username,
+     'password'  => password,
+     'api_path'  => api_path,
+     'domain'    => domain,
+     'cookies'   => "",
+     'logged_in' => false,
+     'uri'       => URI.parse(api_path)
     }
 
     @config['api_version'] = version.to_f
