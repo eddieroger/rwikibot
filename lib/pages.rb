@@ -12,9 +12,9 @@ module Pages
     # Creates a new Page object.
     def initialize(bot, title='')
       @bot = bot
-
+      puts @bot.config
+      
       info = info(title)
-
       @title      = info['title']
       @namespace  = info['ns']
       @new        = info.has_key?('new')

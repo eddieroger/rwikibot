@@ -1,6 +1,5 @@
 module RWBUtilities
 
-  private
 
   # is_redirect?
   #
