@@ -7,7 +7,7 @@ module Pages
   include RWBErrors
 
   class Page
-    attr_reader :title, :namespace, :new, :length, :counter, :lastrevid
+    attr_reader :title, :namespace, :new, :length, :counter, :lastrevid, :missing
 
     # Creates a new Page object.
     def initialize(bot, title='')
@@ -22,6 +22,15 @@ module Pages
       @counter    = info ['counter']
       @lastrevid  = info['lastrevid']
       @missing    = info.has_key?('missing')
+    end
+    
+    # I used to have an exists method (page_exists), but I got rid of it in 2.0, but I'm bringing it back. 
+    def exists?
+      if @missing
+        return false
+      else
+        return true
+      end
     end
 
     # This will get only the content of the article. It is a modification of

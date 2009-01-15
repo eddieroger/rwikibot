@@ -1,5 +1,8 @@
 RWikiBot ChangeLog  
 
+2.0.1 
+	- Changing gemspec so MAYBE it will be included in github gems.
+
 2.0 ** BREAKING RELEASE** - this will break pretty all 1.X bots.  
   - It's smart enough now to handle query-continues! As such, there's a new dependency - deep_merge. Get it - it's in gem.  
   - Made a Page class. now, instead of bot.delete_page(title...), you do page.delete
