@@ -1,5 +1,8 @@
 RWikiBot ChangeLog  
 
+2.0.5
+	- Apparently meets_version_requirement was wrong. Not no more. 
+
 2.0.4
 	- I get it - I just suck at keeping versions consistent. And Github requires incremental gemspecs.
 

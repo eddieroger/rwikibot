@@ -140,7 +140,7 @@ class RWikiBot
   # This is the only meta method. It will return site information. I chose not
   # to allow it to specify, and it will only return all known properties.
   def site_info(siprop='general')
-    raise VersionTooLowError unless meets_version_requirement(1,9)
+    #raise VersionTooLowError unless meets_version_requirement(1,9)
     post_me = {"meta" => "siteinfo" , "siprop" => siprop}
     siteinfo_result = make_request('query', post_me)
     siprop == 'general' ?
