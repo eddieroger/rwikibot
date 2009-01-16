@@ -12,7 +12,7 @@ module Pages
     # Creates a new Page object.
     def initialize(bot, title='')
       @bot = bot
-      puts @bot.config
+      #puts @bot.config
       
       info = info(title)
       @title      = info['title']
@@ -49,7 +49,7 @@ module Pages
     # with caution - this method does not have a confirmation step, and
     # deleted (while restorable) are immediate.
     def delete(reason="Deleted by RWikiBot")
-      raise RWBErrors::VersionTooLowError unless @bot.meets_version_requirement(1,12)
+      # raise RWBErrors::VersionTooLowError unless @bot.meets_version_requirement(1,12)
       raise RWBErrors::NotLoggedInError unless @bot.logged_in?
 
       post_me = {
@@ -64,7 +64,7 @@ module Pages
     # This method fetches any article that links to the article given in
     # 'title'. Returned in alphabetical order.
     def backlinks (titles, options = nil)
-      raise VersionTooLowError unless meets_version_requirement(1,9)
+      # raise VersionTooLowError unless meets_version_requirement(1,9)
 
       post_me = {'list' => 'backlinks', 'titles' => "#{title}" }
 
@@ -81,7 +81,7 @@ module Pages
     # note - the template must be the full name, like "Template:Disputed" or
     # "Template:Awesome".
     def embedded_in(options=nil)
-      raise VersionTooLowError unless @bot.meets_version_requirement(1,9)
+      # raise VersionTooLowError unless @bot.meets_version_requirement(1,9)
 
       # This will get all pages. Limits vary based on user rights of the Bot. Set to bot.
       post_me = {'list' => 'embeddedin', 'eititle' => @title }
@@ -102,7 +102,7 @@ module Pages
 
     # This method will let you move a page from one name to another. A move token is required for this to work. Keep that in mind. (get_token much?)
     def move(to, reason, movetalk= true, noredirect=false)
-      raise RWBErrors::VersionTooLowError unless @bot.meets_version_requirement(1,12)
+      # raise RWBErrors::VersionTooLowError unless @bot.meets_version_requirement(1,12)
       raise RWBErrors::NotLoggedInError unless @bot.logged_in?
 
       post_me = {
@@ -118,7 +118,23 @@ module Pages
       post_me['noredirect'] = '' if noredirect
 
       @bot.make_request('move', post_me)
-    end
+    end # move
+    
+    # This method is used to protect (and unprotect!) pages. See the API for 
+    # possible values. By default, it will lock a page to require sysop level 
+    # privledge and never expire. 
+    def protect(protections='edit=sysop', expiry='infinite', reason='', cascade=true)
+      post_me = {
+        'title'         => @title ,
+        'token'         => get_token('protect') ,
+        'protections'   => protections ,
+        'expiry'        => expiry ,
+        'reason'        => reason ,
+      }
+      
+      post_me['cascade'] = '' if cascade
+      @bot.make_request('protect', post_me)
+    end # protect
 
     # Rollback does what it says - rolls back an article one version in the
     # wiki. This is a function that requires not only a token, but a previous
