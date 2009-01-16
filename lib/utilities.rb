@@ -1,8 +1,16 @@
 module RWBUtilities
 
 
-  # is_redirect?
-  #
+  def meets_version_requirement(maj, min)
+    major, minor = @config['api_version'].to_s.split('.')
+    puts "#{major} > #{maj}"
+    if ( major.to_i > maj.to_i ) || ( (major.to_i == maj.to_i) && (minor.to_i > min.to_i) )
+      return true
+    else 
+      return false
+    end
+  end # meets_version_requirement
+
   # Tests to see if a given page title is redirected to another page. Very Ruby.
   def is_redirect?(title)
     post_me = {'titles' => title, 'redirects'=>'', 'prop' => 'info'}
@@ -10,8 +18,6 @@ module RWBUtilities
     (result['result'] == "Success") && result.has_key?("redirects")
   end
 
-  # logged_in?
-  #
   # A quick (and public) method of checking whether or not we're logged in, since I don't want @config exposed
   def logged_in?
     @config['logged_in']

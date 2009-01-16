@@ -49,7 +49,7 @@ module Pages
     # with caution - this method does not have a confirmation step, and
     # deleted (while restorable) are immediate.
     def delete(reason="Deleted by RWikiBot")
-      # raise RWBErrors::VersionTooLowError unless @bot.meets_version_requirement(1,12)
+      raise RWBErrors::VersionTooLowError unless @bot.meets_version_requirement(1,12)
       raise RWBErrors::NotLoggedInError unless @bot.logged_in?
 
       post_me = {
@@ -64,7 +64,7 @@ module Pages
     # This method fetches any article that links to the article given in
     # 'title'. Returned in alphabetical order.
     def backlinks (titles, options = nil)
-      # raise VersionTooLowError unless meets_version_requirement(1,9)
+      raise VersionTooLowError unless meets_version_requirement(1,9)
 
       post_me = {'list' => 'backlinks', 'titles' => "#{title}" }
 
@@ -81,7 +81,7 @@ module Pages
     # note - the template must be the full name, like "Template:Disputed" or
     # "Template:Awesome".
     def embedded_in(options=nil)
-      # raise VersionTooLowError unless @bot.meets_version_requirement(1,9)
+      raise VersionTooLowError unless @bot.meets_version_requirement(1,9)
 
       # This will get all pages. Limits vary based on user rights of the Bot. Set to bot.
       post_me = {'list' => 'embeddedin', 'eititle' => @title }
@@ -95,6 +95,8 @@ module Pages
     # I decided to split this up since I wanted to normalize the bot framework as much as possible, or in other words, make it as easy to use as possible. I think the sacrifice of more methods is worth having more English looking code. Its the Ruby way.
     # Info will return information about the page, from namespace to normalized title, last touched, etc.
     def info(titles)
+      raise RWBErrors::VersionTooLowError unless @bot.meets_version_requirement(1,9)
+      
       post_me = {"prop" => "info", 'titles' => titles}
       info_result = @bot.make_request('query', post_me)
       info_result.fetch('pages').fetch('page')
@@ -102,7 +104,7 @@ module Pages
 
     # This method will let you move a page from one name to another. A move token is required for this to work. Keep that in mind. (get_token much?)
     def move(to, reason, movetalk= true, noredirect=false)
-      # raise RWBErrors::VersionTooLowError unless @bot.meets_version_requirement(1,12)
+      raise RWBErrors::VersionTooLowError unless @bot.meets_version_requirement(1,12)
       raise RWBErrors::NotLoggedInError unless @bot.logged_in?
 
       post_me = {
@@ -124,6 +126,9 @@ module Pages
     # possible values. By default, it will lock a page to require sysop level 
     # privledge and never expire. 
     def protect(protections='edit=sysop', expiry='infinite', reason='', cascade=true)
+      raise RWBErrors::VersionTooLowError unless @bot.meets_version_requirement(1,12)
+      raise RWBErrors::NotLoggedInError unless @bot.logged_in?
+
       post_me = {
         'title'         => @title ,
         'token'         => get_token('protect') ,
@@ -140,6 +145,9 @@ module Pages
     # wiki. This is a function that requires not only a token, but a previous
     # user.
     def rollback(summary="", markbot=true)
+      raise RWBErrors::VersionTooLowError unless @bot.meets_version_requirement(1,12)
+      raise RWBErrors::NotLoggedInError unless @bot.logged_in?
+
       temp_token = get_token("rollback") # special for rollback. Stupid rollback.
       post_me = {
         'title'     => @title,
@@ -156,6 +164,8 @@ module Pages
     # sure you're logged in and got a token (get_token). Options is an array
     # (or hash) of extra values allowed by the API.
     def save(content, summary=nil, options=nil)
+      raise RWBErrors::VersionTooLowError unless @bot.meets_version_requirement(1,13)
+      raise RWBErrors::NotLoggedInError unless @bot.logged_in?
 
       post_me = {
         'text'     => "#{content}" ,

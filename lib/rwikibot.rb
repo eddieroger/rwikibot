@@ -58,7 +58,7 @@ class RWikiBot
   # always necessary, but bots need to log in to save changes or retrieve
   # watchlists.
   def login
-    # raise VersionTooLowError unless meets_version_requirement(0,0)
+    raise VersionTooLowError unless meets_version_requirement(0,0)
 
     post_me = {'lgname'=>@config.fetch('username'),'lgpassword'=>@config.fetch('password')}
     if @config.has_key?('domain') && (@config.fetch('domain') != nil)
@@ -99,7 +99,7 @@ class RWikiBot
   # elsewhere. Accepts all parameters from the API in Hash form. Default is
   # namespace => 0, which is just plain pages. Nothing 'special'.
   def all_pages(options = nil)
-    # raise VersionTooLowError unless meets_version_requirement(1,9) 
+    raise VersionTooLowError unless meets_version_requirement(1,9) 
     # This will get all pages. Limits vary based on user rights of the Bot. Set to bot.
     post_me = {'list' => 'allpages', 'apnamespace' => '0', 'aplimit' => '5000'}
     post_me.merge!(options) if options
@@ -112,7 +112,7 @@ class RWikiBot
   # pages, and would require the bot maintainer to login to the wiki as the
   # bot to set the watchlist.
   def watchlist(options=nil)
-    # raise VersionTooLowError unless meets_version_requirement(1,10)
+    raise VersionTooLowError unless meets_version_requirement(1,10)
     raise NotLoggedInError unless logged_in?
     post_me = {'list'=>'watchlist'}
     post_me.merge!(options) if options
@@ -121,7 +121,7 @@ class RWikiBot
 
   # This method will return Wiki-wide recent changes, almost as if looking at the Special page Recent Changes. But, in this format, a bot can handle it. Also we're using the API. And bots can't read.
   def recent_changes(options=nil)
-    # raise VersionTooLowError unless meets_version_requirement(1,10)
+    raise VersionTooLowError unless meets_version_requirement(1,10)
     post_me = {"list" => "recentchanges", 'rclimit' => '5000'}
     post_me.merge!(options) if options
     make_request('query' , post_me).fetch('recentchanges').fetch('rc')
@@ -131,7 +131,7 @@ class RWikiBot
   # want to validate log events, or even just a notify bot that checks for
   # events and sends them off.
   def log_events(options=nil)
-    # raise VersionTooLowError unless meets_version_requirement(1,11)
+    raise VersionTooLowError unless meets_version_requirement(1,11)
     post_me = {"list" => "logevents"}
     post_me.merge!(options) if options
     make_request('query', post_me).fetch('logevents').fetch('item')
@@ -140,7 +140,7 @@ class RWikiBot
   # This is the only meta method. It will return site information. I chose not
   # to allow it to specify, and it will only return all known properties.
   def site_info(siprop='general')
-    # raise VersionTooLowError unless meets_version_requirement(1,9)
+    raise VersionTooLowError unless meets_version_requirement(1,9)
     post_me = {"meta" => "siteinfo" , "siprop" => siprop}
     siteinfo_result = make_request('query', post_me)
     siprop == 'general' ?
@@ -150,7 +150,7 @@ class RWikiBot
 
   # Get information about the current user
   def user_info(uiprop=nil)
-    # raise VersionTooLowError unless meets_version_requirement(1,11)
+    raise VersionTooLowError unless meets_version_requirement(1,11)
     post_me = {"meta" => "userinfo" }
     post_me['uiprop'] =  uiprop unless uiprop.nil?
 
