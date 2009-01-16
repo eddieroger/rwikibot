@@ -1,5 +1,8 @@
 RWikiBot ChangeLog  
 
+2.0.4
+	- I get it - I just suck at keeping versions consistent. And Github requires incremental gemspecs.
+
 2.0.3
 	- Removed an extra puts. Oops.
 	- Added Page::protect
