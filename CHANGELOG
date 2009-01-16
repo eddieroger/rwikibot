@@ -1,10 +1,12 @@
 RWikiBot ChangeLog  
 
-2.0.2
+2.0.3
 	- Removed an extra puts. Oops.
 	- Added Page::protect
 	- Reimplemented meets_version_requirement and references to it
 	
+2.0.2
+	- Random little changes. Forgot to document. Sorry. 
 	
 2.0.1 
 	- Changing gemspec so MAYBE it will be included in github gems.
